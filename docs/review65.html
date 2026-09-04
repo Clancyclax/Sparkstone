@@ -1,0 +1,704 @@
+<title>The Sparkstone Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Libre+Franklin:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root {
+  --ground: #f5f4f8;
+  --surface: #fcfbfd;
+  --sunk: #eeecf2;
+  --ink: #1a1822;
+  --ink-2: #55515f;
+  --ink-3: #837e8d;
+  --rule: #dcd8e3;
+  --rule-hard: #b9b3c4;
+  --accent: #4f5769;
+  --chip-edge: #b9b3c4;
+
+  --r-normal: #9e9e9e;
+  --r-iron:   #8b93a6;
+  --r-bronze: #c97a3d;
+  --r-silver: #e7e9ec;
+  --r-gold:   #f4c430;
+
+  --sp: clamp(1rem, 3vw, 2rem);
+  --measure: 68ch;
+  --frame: 1120px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #121017;
+    --surface: #1a1822;
+    --sunk: #16141d;
+    --ink: #eae7f0;
+    --ink-2: #a9a3b5;
+    --ink-3: #7b7588;
+    --rule: #2c2836;
+    --rule-hard: #423c50;
+    --accent: #a3abc0;
+    --chip-edge: #423c50;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #121017;
+  --surface: #1a1822;
+  --sunk: #16141d;
+  --ink: #eae7f0;
+  --ink-2: #a9a3b5;
+  --ink-3: #7b7588;
+  --rule: #2c2836;
+  --rule-hard: #423c50;
+  --accent: #a3abc0;
+  --chip-edge: #423c50;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: "Libre Franklin", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+.frame {
+  max-width: var(--frame);
+  margin: 0 auto;
+  padding: 0 var(--sp);
+}
+
+/* ---------- masthead ---------- */
+
+.masthead {
+  padding-top: clamp(2.5rem, 7vw, 5rem);
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--ink);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.75rem;
+  align-items: end;
+}
+@media (min-width: 820px) {
+  .masthead { grid-template-columns: minmax(0, 1fr) auto; gap: 3rem; }
+}
+
+.masthead h1 {
+  font-family: Fraunces, Georgia, serif;
+  font-optical-sizing: auto;
+  font-variation-settings: "SOFT" 20, "WONK" 1;
+  font-weight: 600;
+  font-size: clamp(2.6rem, 7vw, 4.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.022em;
+  margin: 0 0 0.6rem;
+  text-wrap: balance;
+}
+.masthead .kicker {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: 0 0 1.1rem;
+}
+.masthead .standfirst {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 1.06rem;
+  color: var(--ink-2);
+}
+
+.stamp {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 0.2rem 1.4rem;
+  align-content: end;
+  white-space: nowrap;
+}
+.stamp dt { color: var(--ink-3); margin: 0; }
+.stamp dd { margin: 0; text-align: right; color: var(--ink); }
+
+/* ---------- sections ---------- */
+
+section { padding-top: clamp(3rem, 6vw, 4.5rem); }
+
+.sechead {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  border-bottom: 1px solid var(--rule-hard);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.6rem;
+}
+.sechead h2 {
+  font-family: Fraunces, Georgia, serif;
+  font-variation-settings: "SOFT" 20, "WONK" 1;
+  font-weight: 600;
+  font-size: clamp(1.5rem, 3.2vw, 2.05rem);
+  letter-spacing: -0.014em;
+  line-height: 1.1;
+  margin: 0;
+}
+.sechead .tag {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+p, .prose ul, .prose ol { max-width: var(--measure); }
+p { margin: 0 0 1rem; }
+.prose ul { padding-left: 1.15rem; margin: 0 0 1rem; }
+.prose li { margin-bottom: 0.4rem; }
+
+.lede { font-size: 1.06rem; color: var(--ink-2); }
+
+strong { font-weight: 600; color: var(--ink); }
+em { font-style: italic; }
+
+code, .mono {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.86em;
+  font-variant-numeric: tabular-nums;
+}
+code {
+  background: var(--sunk);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 0.05em 0.32em;
+  color: var(--ink);
+}
+
+/* ---------- rank chip: the structural device ---------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.chip::before {
+  content: "";
+  width: 0.72em;
+  height: 0.72em;
+  border: 1px solid var(--chip-edge);
+  background: var(--sw, var(--r-normal));
+  flex: none;
+}
+.chip.normal { --sw: var(--r-normal); }
+.chip.iron   { --sw: var(--r-iron); }
+.chip.bronze { --sw: var(--r-bronze); }
+.chip.silver { --sw: var(--r-silver); }
+.chip.gold   { --sw: var(--r-gold); }
+
+.legend {
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  padding: 1.15rem 1.3rem;
+  display: grid;
+  gap: 0.55rem;
+  max-width: 760px;
+}
+.legend .row {
+  display: grid;
+  grid-template-columns: 7.2rem 1fr;
+  gap: 0.9rem;
+  align-items: baseline;
+  font-size: 0.9rem;
+  color: var(--ink-2);
+}
+.legend .row + .row { border-top: 1px solid var(--rule); padding-top: 0.55rem; }
+
+/* ---------- spec grid ---------- */
+
+.spec {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+  border-top: 1px solid var(--rule);
+  border-left: 1px solid var(--rule);
+}
+.spec div {
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 0.85rem 0.9rem 0.95rem;
+  background: var(--surface);
+}
+.spec .n {
+  display: block;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 1.42rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--ink);
+}
+.spec .l {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+}
+
+/* ---------- tables ---------- */
+
+.scroller { overflow-x: auto; margin: 0 0 1.2rem; }
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 620px;
+  font-size: 0.9rem;
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.62rem 0.9rem 0.62rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+th {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--rule-hard);
+  padding-bottom: 0.4rem;
+}
+td { color: var(--ink-2); }
+td.name { color: var(--ink); font-weight: 500; width: 1%; white-space: nowrap; padding-right: 1.4rem; }
+td.rk { width: 1%; white-space: nowrap; padding-right: 1.4rem; }
+tbody tr:last-child td { border-bottom: 1px solid var(--rule-hard); }
+
+/* ---------- acts ---------- */
+
+.act {
+  border-top: 1px solid var(--rule-hard);
+  padding: 1.4rem 0 1.5rem;
+  display: grid;
+  gap: 0.9rem 2.4rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 860px) {
+  .act { grid-template-columns: 15rem minmax(0, 1fr); }
+}
+.act:last-of-type { border-bottom: 1px solid var(--rule-hard); }
+
+.act .who h3 {
+  font-family: Fraunces, Georgia, serif;
+  font-variation-settings: "SOFT" 20, "WONK" 1;
+  font-weight: 600;
+  font-size: 1.12rem;
+  line-height: 1.2;
+  margin: 0 0 0.35rem;
+  color: var(--ink);
+}
+.act .who .where {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  display: block;
+  margin-bottom: 0.6rem;
+}
+.act .body p { margin: 0 0 0.7rem; }
+.act .body p:last-child { margin-bottom: 0; }
+.act .body .designed { color: var(--ink-2); }
+.act .body .built {
+  border-left: 2px solid var(--rule-hard);
+  padding-left: 0.9rem;
+  margin-top: 0.85rem;
+}
+.act .body .built .h {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.64rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+/* ---------- callout ---------- */
+
+.pull {
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--rule-hard);
+  padding: 1.2rem 0 1.3rem;
+  margin: 2rem 0;
+  max-width: 780px;
+}
+.pull p {
+  font-family: Fraunces, Georgia, serif;
+  font-variation-settings: "SOFT" 20, "WONK" 1;
+  font-weight: 400;
+  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+  line-height: 1.34;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0;
+  max-width: none;
+  text-wrap: balance;
+}
+
+/* ---------- fix list ---------- */
+
+.fixes { display: grid; gap: 0; border-top: 1px solid var(--rule); }
+.fix {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.85rem 0;
+  display: grid;
+  gap: 0.15rem 1.4rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 780px) {
+  .fix { grid-template-columns: 17rem minmax(0, 1fr); align-items: baseline; }
+}
+.fix .what { color: var(--ink); font-weight: 500; font-size: 0.93rem; }
+.fix .why { color: var(--ink-2); font-size: 0.9rem; }
+
+footer {
+  margin-top: clamp(3.5rem, 8vw, 6rem);
+  border-top: 2px solid var(--ink);
+  padding: 1.2rem 0 3.5rem;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.6rem;
+}
+</style>
+
+<div class="frame">
+
+  <header class="masthead">
+    <div>
+      <p class="kicker">Running project review &middot; Phaser 4 port</p>
+      <h1>The Sparkstone Ledger</h1>
+      <p class="standfirst">Sixty-six rounds in. The world was finished a long time ago; the story it was built for started this round. Here is the honest account, kept current.</p>
+    </div>
+    <dl class="stamp">
+      <dt>build</dt><dd>v66</dd>
+      <dt>engine</dt><dd>Phaser 4.2.1</dd>
+      <dt>source</dt><dd>43,655 lines</dd>
+      <dt>assets</dt><dd>741 PNG / 111 MB</dd>
+      <dt>suites</dt><dd>81</dd>
+    </dl>
+  </header>
+
+  <section id="scale">
+    <div class="sechead"><h2>How to read this</h2><span class="tag">the scale</span></div>
+    <div class="prose">
+      <p>Everything below is graded on the game's own rank ladder, using the literal hex values out of <code>RANK_COLORS</code>. It is a completeness scale, not a quality one.</p>
+    </div>
+    <div class="legend">
+      <div class="row"><span class="chip gold">gold</span><span>Built, playable, and covered by assertions that would fail if it broke.</span></div>
+      <div class="row"><span class="chip silver">silver</span><span>Built and playable; thin or partial test coverage.</span></div>
+      <div class="row"><span class="chip bronze">bronze</span><span>Partly built. Something real is in the world, but the loop is incomplete.</span></div>
+      <div class="row"><span class="chip iron">iron</span><span>Scaffolding only — art loaded, data authored, nothing wired to play.</span></div>
+      <div class="row"><span class="chip normal">normal</span><span>Designed. Written down in <code>DESIGN_STORY.md</code> and nowhere else.</span></div>
+    </div>
+    <div class="prose" style="margin-top:1.2rem">
+      <p>The scale stops at Gold on purpose. The project's own standing rule is that no region and no monster is diamond rank, because diamond is effectively unreachable in play — so a document about this project has no business claiming a tier the project refuses to build.</p>
+    </div>
+  </section>
+
+  <section id="glance">
+    <div class="sechead"><h2>At a glance</h2><span class="tag">counted, not estimated</span></div>
+    <div class="spec">
+      <div><span class="n">4</span><span class="l">regions, 1024&times;1024 each</span></div>
+      <div><span class="n">146</span><span class="l">essences</span></div>
+      <div><span class="n">188</span><span class="l">awakening stones</span></div>
+      <div><span class="n">19</span><span class="l">levers</span></div>
+      <div><span class="n">64</span><span class="l">ability categories</span></div>
+      <div><span class="n">90</span><span class="l">monsters, 18 families</span></div>
+      <div><span class="n">1,050</span><span class="l">FX effects in 20 pools</span></div>
+      <div><span class="n">376</span><span class="l">doors, one per building</span></div>
+      <div><span class="n">7</span><span class="l">Division stages</span></div>
+      <div><span class="n">8</span><span class="l">gods, temples, divine essences</span></div>
+      <div><span class="n">224</span><span class="l">god quest steps</span></div>
+      <div><span class="n">8</span><span class="l">Act 0 pages</span></div>
+      <div><span class="n">10</span><span class="l">hard palette swaps</span></div>
+      <div><span class="n">71</span><span class="l">data modules</span></div>
+      <div><span class="n">20,078</span><span class="l">lines in WorldScene.js</span></div>
+      <div><span class="n">0</span><span class="l">diamond-rank content</span></div>
+    </div>
+  </section>
+
+  <section id="story">
+    <div class="sechead"><h2>The story, act by act</h2><span class="tag">what you asked for</span></div>
+    <div class="prose">
+      <p class="lede">The arc in <code>DESIGN_STORY.md</code> is the Division of Essence Research: five acts, one per region plus the waking. Round 65's answer was that the build had the <em>stage</em> for every act and the <em>script</em> for none. Round 66 wrote the first two acts. Three still have their sets dressed and their actors backstage.</p>
+    </div>
+
+    <div class="act">
+      <div class="who">
+        <h3>Act 0 &mdash; Waking</h3>
+        <span class="where">The Nek</span>
+        <span class="chip gold">gold</span>
+      </div>
+      <div class="body">
+        <p class="designed">The player wakes in Pallimustus with no memory of arriving. Knowledge speaks into their mind, explains what an outworlder is, gives a grounding in essences and stones, and warns them to get stronger.</p>
+        <div class="built">
+          <span class="h">In the build &mdash; new in 66</span>
+          <p>All of it. Eight pages, played once when the character creator closes on a new run, skippable at any page, and marked seen so a loaded save never sits through it twice. Knowledge covers the outworlder framing, the three-essences-and-a-confluence shape, what an awakening stone is for, and why a gate guard turning you back is a kindness &mdash; then tells you something is being built in this city that should not be, which is the hook into Act 1.</p>
+          <p>The grounding page nearly shipped broken: it was written to name the player's own three essences back to them and gated on having three, and the creator sets appearance only. The gate was always false, so the most important page of the introduction would never have displayed at all.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="act">
+      <div class="who">
+        <h3>Act 1 &mdash; The lab in town</h3>
+        <span class="where">The Nek</span>
+        <span class="chip gold">gold</span>
+      </div>
+      <div class="body">
+        <p class="designed">Rumours lead to the Division's lab. They are abducting people and forcing quintessence absorption; most die, some become Essence Wraiths. The player uncovers it and confronts the director just as he completes a breakthrough. The Division flees.</p>
+        <div class="built">
+          <span class="h">In the build &mdash; new in 66</span>
+          <p>Seven stages, and the actors are on stage. Ask around Cadence and three people finish the same half-sentence. Visit the Department; meet Wren Ashcombe, who is bad at being welcoming, and Director Hallam Vesk, who is busy. Find the intake ledger he keeps closing &mdash; forty-one names in, nine out. Work the ground for what the Division leaves behind, learn it does not all stop moving, and put down enough Essence Wraiths to be believed. Meet the chief engineer nobody mentions. Then stand in the lab while Vesk finishes, and fight the four failures he keeps in the next room.</p>
+          <p><strong>Every stage rewrites what the lab says.</strong> The Department is a chartered research house on stage one and a crime scene on stage seven, and you learn that by walking back in and finding the same two people saying something worse &mdash; fourteen distinct staff lines over a full walk, no stage reusing another's. Vesk does not die: the design has the Division <em>flee</em> The Nek, and a director killed here cannot flee to Ontaria.</p>
+          <p>The engineer is Rory Matheson, present for exactly one stage as a junior nobody looks at twice. That is load-bearing: he is the Act 4 boss, and his return four regions later only lands if you met him first.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="act">
+      <div class="who">
+        <h3>Act 2 &mdash; Underground</h3>
+        <span class="where">Ontaria</span>
+        <span class="chip iron">iron</span>
+      </div>
+      <div class="body">
+        <p class="designed">The Division is outlawed and hidden. The player finds the secret aperture to their astral space, beats the next cell, and meets Rob Collins &mdash; a Gold-rank energy vampire who will work with them but will not come into town.</p>
+        <div class="built">
+          <span class="h">In the build</span>
+          <p>This round put the beat into people's mouths. Ontaria's named folk now say the research house on the hill was chartered, respectable, and gone in a night, and that nobody official will say the word aloud. That is the first time the main plot exists inside the game rather than beside it. Rob Collins is modelled and animated but held off the map by an explicit round-50 decision. No aperture, no astral space, no cell.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="act">
+      <div class="who">
+        <h3>Act 3 &mdash; The badlands</h3>
+        <span class="where">Elehyd</span>
+        <span class="chip iron">iron</span>
+      </div>
+      <div class="body">
+        <p class="designed">The investigation continues. Rob's portal specialist is the way out, and will not open the way below Gold rank &mdash; and does not appear in the city at all until the player is silver 9 in several abilities.</p>
+        <div class="built">
+          <span class="h">In the build</span>
+          <p>The exit exists as geography, not as a person. Karsk Landing has its portal square &mdash; a paved disc ringed by eight standing stones &mdash; and the Gold gate is enforced. Elehyd folk mention a specialist working out of a back room who only takes Gold-rank clients. There is no specialist NPC and no investigation content. Act 3 was the thinnest act on paper too; it has one paragraph of design and gets a proportionate amount of build.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="act">
+      <div class="who">
+        <h3>Act 4 &mdash; The king's city</h3>
+        <span class="where">Bratugal</span>
+        <span class="chip iron">iron</span>
+      </div>
+      <div class="body">
+        <p class="designed">The Division is in league with the king. The player earns noble favour, gets the king deposed, then hunts the western backup base, fights Rory Matheson through two phases, finds the sick child, and is met outside by Rob. Every god but Liberty then asks for the child.</p>
+        <div class="built">
+          <span class="h">In the build</span>
+          <p>Vashra is fully built &mdash; walled, sixty-six tiles across, with city-only roads added this round &mdash; and its six named folk talk about disappearances and about which noble house is quietly buying what. Nothing behind that exists: no reputation system, no council, no deposition, no western base, no two-phase fight, no child, no divine bidding war. This act is the largest single body of unbuilt design in the project.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="prose" style="margin-top:1.8rem">
+      <p><strong>The party is the exception.</strong> The four companions are the one piece of story that is genuinely finished: real models with movement and attack animations, generated kits from their own authored essence trios, ranks that track the player within ten percent, meditation in settlements, and Zeke gated behind a real recruitment mission rather than handed over on contact. They have no story <em>beats</em> of their own, but they exist as characters in a way nobody else in the plot does. <span class="chip gold" style="margin-left:.35rem">gold</span></p>
+    </div>
+
+    <div class="pull">
+      <p>The world was built first, and a world with nothing to say in it is exactly what sixty-four rounds of world-building produces. Two acts in, the pattern is proven and the remaining three are the same job three more times.</p>
+    </div>
+  </section>
+
+  <section id="gods">
+    <div class="sechead"><h2>The god chains</h2><span class="tag">new this round</span></div>
+    <div class="prose">
+      <p>This is the round's substantive addition, and it changes the answer to the story question above: the gods now carry the only complete narrative arc in the game. Eight gods, two tracks each, four chapters per track, <strong>224 authored steps</strong> — the first content in the project with a beginning, a middle and an end.</p>
+      <p>The <strong>public</strong> chain is open to anyone and is about the god's domain: War audits and drills the garrisons, Knowledge wants specific things known, Purity is trying to cleanse a tainted wood. The <strong>private</strong> chain opens only to a disciple &mdash; someone carrying that god's divine essence in their confluence slot &mdash; and is not gated behind the public one, per your call. Each chapter is pinned to a region and a rank, and grows as both do.</p>
+    </div>
+    <div class="scroller">
+      <table>
+        <thead><tr><th>Chapter</th><th>Region</th><th>Rank</th><th>Steps</th><th>Public pays</th><th>Private pays</th></tr></thead>
+        <tbody>
+          <tr><td class="name">I</td><td>The Nek</td><td><span class="chip normal">normal</span></td><td>2</td><td>220 coin</td><td>A thematic divine awakening stone</td></tr>
+          <tr><td class="name">II</td><td>Ontaria</td><td><span class="chip bronze">bronze</span></td><td>3</td><td>700 coin</td><td>A divine silver weapon, your choice of type</td></tr>
+          <tr><td class="name">III</td><td>Elehyd</td><td><span class="chip silver">silver</span></td><td>4</td><td>2,200 coin</td><td>A follower &mdash; your starting essences, the god's divine confluence</td></tr>
+          <tr><td class="name">IV</td><td>Bratugal</td><td><span class="chip gold">gold</span></td><td>5</td><td>6,500 coin</td><td>Eight-piece divine armour set, bonuses tied to that essence</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="prose">
+      <p>Steps are generated against each god's taste rather than picked at random: a god's <code>families</code> and <code>siteKeys</code> steer target selection, and the fallback ladder gives up the <em>task kind</em> before it gives up the <em>theme</em> &mdash; so a Death step that cannot find a cull becomes a different kind of undead job, never a bat hunt. Measured across the full chain, Death runs 20 of 20 steps on undead.</p>
+      <p>Death's domain follows your correction: he is not a psychopomp with a scythe, he is the god at war with Undeath. His chapters run from things still standing in The Nek that he already called, through what the sea gives back, to the cult entire; the private chain names Undeath as a rival god who is winning quietly.</p>
+    </div>
+
+    <h3 style="font-family:Fraunces,Georgia,serif;font-variation-settings:'SOFT' 20,'WONK' 1;font-weight:600;font-size:1.16rem;margin:2rem 0 .6rem">The lore pass</h3>
+    <div class="prose">
+      <p>The Death correction was worth generalising, so the whole pantheon got re-read against HWFWM rather than against the generic fantasy version of each noun &mdash; and the result is now written into the module header, for the same reason <code>DESIGN_STORY.md</code> exists. Two more lines changed out of it.</p>
+      <ul>
+        <li><strong>Heroes</strong> opened with self-promotion &mdash; "nobody has heard of you, fix that." That is the shallow reading. Heroes is about the deed and about the deed making the next person brave; an unwitnessed one still counts, which is precisely what the private track was already saying. The public chapter now asks you to give The Nek somebody to point at, for the sake of whoever tries next.</li>
+        <li><strong>Dominion</strong> opened with taking ground. Dominion is legitimate rule and the responsibility of it &mdash; Liberty's philosophical opposite, not its enemy, and both are good gods. A crown is now ground you are still standing on when everyone else has run.</li>
+      </ul>
+      <p>Two things came out of the pass unchanged and worth stating: <strong>Liberty</strong> was already exact &mdash; company towns, work gangs, a king as a kind of lock, and the one bond it accepts being the freely chosen one, which is what a divine essence is. And <strong>Undeath</strong> correctly has no temple, no essence and no entry: it is the antagonist of a domain, not a ninth god the player can bond.</p>
+    </div>
+
+    <div class="pull">
+      <p>Death's war on Undeath is fought against ten monsters. Skeletons and shades are the entire undead roster &mdash; there is no zombie, no ghoul, no wight. The chain is correct for the world that exists; the world is short the enemies its own war needs.</p>
+    </div>
+  </section>
+
+  <section id="systems">
+    <div class="sechead"><h2>Systems</h2><span class="tag">the machine under it</span></div>
+    <div class="scroller">
+      <table>
+        <thead><tr><th>System</th><th>State</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="name">Essence &amp; confluence</td><td class="rk"><span class="chip gold">gold</span></td><td>Three slots, auto-formed confluence, four stone sockets each, 20-ability kits from candidate generation with synergy-aware selection. The protected architecture, intact and asserted.</td></tr>
+          <tr><td class="name">Ability generation</td><td class="rk"><span class="chip gold">gold</span></td><td>64 categories across 19 levers, rare limit-breakers, cast times, and the 12-active / 8-passive shape.</td></tr>
+          <tr><td class="name">Combat &amp; FX</td><td class="rk"><span class="chip gold">gold</span></td><td>1,050 effects in 20 pools, homing, telegraphed boss areas, projectile and volley templates.</td></tr>
+          <tr><td class="name">Ranks &amp; the gates</td><td class="rk"><span class="chip gold">gold</span></td><td>Confluence-gated Normal&rarr;Iron, region exits keyed to rank with real posted keepers. The tyranny of rank enforced in the numbers.</td></tr>
+          <tr><td class="name">The four regions</td><td class="rk"><span class="chip gold">gold</span></td><td>Terrain, rivers, ocean, peaks, bog, roads that fade to dirt, banded spawns with packs and super packs, lazy activation.</td></tr>
+          <tr><td class="name">Settlements</td><td class="rk"><span class="chip gold">gold</span></td><td>Cadence transcribed from your map; six more settlements plus four hamlets. Every shopkeeper is now visible &mdash; they were not, from round 44 until this one.</td></tr>
+          <tr><td class="name">Party</td><td class="rk"><span class="chip gold">gold</span></td><td>Four companions who follow, fight, heal, meditate and rank up. Zeke gated behind a mission.</td></tr>
+          <tr><td class="name">Gods &amp; divine bond</td><td class="rk"><span class="chip gold">gold</span></td><td>Eight temples, eight divine essences, permanent bonding, standing, and selling one marks the god unfriendly for good.</td></tr>
+          <tr><td class="name">God quest chains</td><td class="rk"><span class="chip silver">silver</span></td><td>224 steps, four rewards, both tracks walked end-to-end in test. New this round, so the coverage is one suite deep.</td></tr>
+          <tr><td class="name">Bounties &amp; boards</td><td class="rk"><span class="chip gold">gold</span></td><td>Named bounties, weekly quest boards at every hamlet, deterministic from the week key.</td></tr>
+          <tr><td class="name">Interiors &amp; dens</td><td class="rk"><span class="chip gold">gold</span></td><td>47 rooms in the reserved band; 36 den rooms across 7 site kinds, built on first door open to stay under the display-list cap.</td></tr>
+          <tr><td class="name">Save / load</td><td class="rk"><span class="chip gold">gold</span></td><td>Six slots. Saves inputs and rebuilds derived, so a save opens on a later build with that build's abilities.</td></tr>
+          <tr><td class="name">Items &amp; market</td><td class="rk"><span class="chip silver">silver</span></td><td>Gear, weapons, icons, shops and the auction house. Divine gear joins it this round.</td></tr>
+          <tr><td class="name">Main story (Acts 0&ndash;1)</td><td class="rk"><span class="chip gold">gold</span></td><td>The waking, and the Division through seven stages to the confrontation. New in 66, asserted end to end.</td></tr>
+          <tr><td class="name">Main story (Acts 2&ndash;4)</td><td class="rk"><span class="chip iron">iron</span></td><td>Art and NPC dialogue seeding only.</td></tr>
+          <tr><td class="name">Interiors, everything</td><td class="rk"><span class="chip gold">gold</span></td><td>376 doors for 353 buildings, caves included. Eight layouts over a four-room pool, re-dressed on entry.</td></tr>
+          <tr><td class="name">Sound</td><td class="rk"><span class="chip normal">normal</span></td><td>Still none. Flagged as open since the Phaser decision and never picked up.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="correction">
+    <div class="sechead"><h2>A correction</h2><span class="tag">this page was wrong</span></div>
+    <div class="prose">
+      <p>The round-65 version of this page said the Department of Essence Development &ldquo;stands alone in Cadence's southeast corner exactly as your city map places it.&rdquo; <strong>It did not. It has never been in the game.</strong></p>
+      <p>Round 48 read that instruction off the city map, added the building to the capital's civic list, and wrote the code to place it &mdash; inside a method that begins <code>if (CADENCE_OUTLINE) return;</code>. That constant has been <code>true</code> since round 49, so the whole method is dead code: its houses, its civic row and its Department alike. The city is built by a different path whose own list is tavern, guild, blacksmith, auction. Eighteen rounds, one labelled landmark, absent.</p>
+      <p>Nothing reported it because nothing ever looked for it &mdash; until Act 1 needed a door to hang a lab on and could not find the building. And I wrote that sentence from the source rather than from the world, one section above a bug whose entire lesson was that reading the code is not measuring the build. It is placed now, in the live path, southeast of the square, and the suite asserts it exists, that there is exactly one, and where it stands.</p>
+    </div>
+  </section>
+
+  <section id="round66">
+    <div class="sechead"><h2>Round 66</h2><span class="tag">what shipped</span></div>
+    <div class="prose">
+      <ul>
+        <li><strong>Act 0 and the Division questline</strong> &mdash; see the story section above.</li>
+        <li><strong>An inside for every building and cave.</strong> 353 buildings; one reserved room each fits neither the interior band nor the 4,000-object display cap. The observation that dissolves both: <em>the player can only be inside one building at a time</em>. So there is a pool of four physical rooms, and opening a door dresses one for that building. Which of eight layouts you get is a pure function of the building's position, so a house's inside never changes between visits and nothing is stored to promise it. Beds are the one honest substitution &mdash; the prop sheet has none, so a cot is a low bench.</li>
+        <li><strong>God pay moved onto the coin ladder</strong> &mdash; 200 iron, 300 bronze, 400 silver, 500 gold. The old flat values were denominated in normal-rank coins, and the ladder is &times;100 a rung, so the gold-rank chapter of a gold-rank chain was paying less than one bronze coin. The god now also <em>says</em> what a chapter pays before you agree to it, which it never did.</li>
+        <li><strong>Two real engine bugs</strong> out of three failing assertions. Monsters that start inside a building's collision radius were frozen forever &mdash; every candidate step collides, so none is accepted &mdash; which happens in play whenever a structure is sited over a spawn. And spawn groups were being put to sleep based on where they spawned rather than where their monsters are, so a pack chased far enough from home vanished mid-fight instead of dying.</li>
+      </ul>
+      <p>Four faults were found in this round's own new code, all of them the two recurring classes. The one worth passing on: an FNV hash written with a plain <code>*</code> instead of <code>Math.imul</code>. JavaScript numbers are float64, so multiplying a value near 2<sup>32</sup> lands past 2<sup>53</sup> and the low bits &mdash; the only ones a modulo reads &mdash; are rounded away. 195 of 200 positions hashed to the same result out of two. <strong>It looks like a working hash right up until you count the outputs.</strong></p>
+    </div>
+  </section>
+
+  <section id="round65">
+    <div class="sechead"><h2>Round 65 &mdash; region parity</h2><span class="tag">previously</span></div>
+    <div class="prose">
+      <p>The Nek had detail the other three did not, because it was built first and got sixty rounds of attention. This round levelled that.</p>
+      <ul>
+        <li><strong>25 named townsfolk</strong> across six settlements, each with their own art, position and line &mdash; and the lines carry the plot beats listed in the acts above.</li>
+        <li><strong>Water in every region.</strong> Two lakes in Ontaria, two frozen tarns in Elehyd, siting rules generalised so every region gets its lakeside structure rather than only The Nek.</li>
+        <li><strong>Roads.</strong> Farms attached to Elehyd's first road; three city-only roads laid inside Vashra. Three dead <code>bridges: true</code> flags removed &mdash; they described behaviour that had been unconditional for twenty rounds.</li>
+        <li><strong>Bratugal props</strong> &mdash; ten stilt shacks over the water and six caves, which it had none of.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="bugs">
+    <div class="sechead"><h2>Bugs found and fixed</h2><span class="tag">the audit pass</span></div>
+    <div class="prose">
+      <p>An adversarial sweep for this project's two recurring fault classes &mdash; <em>a field written, printed, promised and read by nothing</em>, and <em>a table keyed off a list that does not cover the roster</em> &mdash; turned up eleven. Not one was caught by an existing suite.</p>
+    </div>
+    <div class="fixes">
+      <div class="fix"><span class="what">volley went nowhere</span><span class="why">The template was handled by no code at all. Casting one burned the cooldown and produced nothing &mdash; and five of the twenty marquee confluences route to it.</span></div>
+      <div class="fix"><span class="what">every volley bolt flew straight</span><span class="why">Once volley worked, its per-bolt aim angle was computed and thrown away. My own probe reported "1 distinct heading" from a twelve-bolt spread.</span></div>
+      <div class="fix"><span class="what">two phantom methods on save load</span><span class="why"><code>_refreshDerivedStats</code> and <code>_syncPlayerTexture</code> do not exist. <code>typeof</code> guards made two silent no-ops look deliberate; loading a save skipped both stat recompute and appearance.</span></div>
+      <div class="fix"><span class="what">ally scaling promised, not enforced</span><span class="why">The stats line printed "max 4" and nothing capped the count. <code>allyRange</code> was equally decorative.</span></div>
+      <div class="fix"><span class="what">shopkeepers invisible since round 44</span><span class="why">Pending NPCs were queued and never given sprites. Thirteen of them, in every settlement.</span></div>
+      <div class="fix"><span class="what">two shades on the generic line</span><span class="why"><code>SHADE_LORE</code> was missing <code>rusted</code> and <code>bloodforged</code> &mdash; fault class two, exactly.</span></div>
+      <div class="fix"><span class="what">buildings placed on loose rocks</span><span class="why">Round 63 reordered placement and quietly broke round 21's "no rock inside a building" rule. Scatter under site structures is now cleared.</span></div>
+      <div class="fix"><span class="what">den props dropped on first collision</span><span class="why">One lair came out with two of its four props. Now retries eight times before giving up.</span></div>
+      <div class="fix"><span class="what">Death hunting bats</span><span class="why">The god-step fallback surrendered the god's theme before the task kind, so a Death step became "kill six Duskfang." Found by looking at it, not by an assertion.</span></div>
+      <div class="fix"><span class="what">every plaza banded off the wrong centre</span><span class="why">Round 30 measured the concentric paving rings from <code>townOrigin</code> &mdash; correct when the game had one town, wrong for the twenty-five settlements that each cut their own disc, and meaningless once round 46 stencilled Cadence and moved <code>townOrigin</code> off a generated plaza entirely. Every plaza in the game was a flat red slab.</span></div>
+      <div class="fix"><span class="what">&hellip;and a half-tile error under it</span><span class="why">Settlement centres are stored as <code>(anchor + 0.5) &times; TILE</code>. Converting back with <code>Math.round</code> lands a tile off, which leaves the colours alternating but puts both of them in every ring &mdash; the exact asymmetry the original comment says the rings are struck on the tile grid to avoid.</span></div>
+    </div>
+    <div class="prose" style="margin-top:1.4rem">
+      <p>The last two are the ones worth dwelling on. They sat there for thirty-five rounds with a suite pointed straight at them, and the suite passed &mdash; because it measured from the same global the buggy code did, at the one spot where the two could not disagree. <strong>A probe aimed at the same global as the code under test proves nothing.</strong> It only surfaced now because re-specifying the suite for round 46's city rewrite forced it to aim somewhere else.</p>
+    </div>
+  </section>
+
+  <section id="tests">
+    <div class="sechead"><h2>The test estate</h2><span class="tag">and its rot</span></div>
+    <div class="prose">
+      <p>Eighty Playwright suites, each booting the real game against a live server. The round-65 suite passes 40 of 40, covering the chain data, all 224 steps building, thematic targeting, both gates, all four rewards, the follower swap, every audit fix above, and region parity.</p>
+      <p>Four things in the estate deserve naming rather than burying:</p>
+      <ul>
+        <li><strong>The regression runner was skipping twenty suites.</strong> Its exclusion pattern was meant to drop the two dead early suites; it matches by prefix, so it also dropped everything from round 30 to round 49. That is a quarter of the estate, silently unrun, for an unknown number of rounds. Fixed this round &mdash; and running them immediately surfaced the plaza bug above, plus three failures nothing has been watching: a recruited member not following, a damage aura silent in both stealth states, and a taunt not pulling monsters onto the tank. All three are party- or aggro-adjacent, none is touched by this round's work, and the party suite itself passes 37/37. They are logged rather than chased, because chasing them mid-delivery is how a round stops shipping.</li>
+        <li><strong>Every suite has been lying about its boot timeout.</strong> <code>waitForFunction</code> takes options as its <em>third</em> argument; the second is the value passed to the page function. Every suite in the estate passes <code>{timeout: 300000}</code> in slot two, so Playwright treats it as an argument and runs on its 30-second default. They pass because the game boots in about fifteen seconds on a warm server &mdash; and on a cold one they fail as a timeout that reads like a hang. Round 66's suite gets it right; the rest want a sweep.</li>
+        <li><strong>The round-3 and round-4 era suites are dead.</strong> They call <code>s._castAbility</code>, an API that has not existed for dozens of rounds. They do not fail &mdash; they produce no result line at all, which is worse, because a runner that greps for pass counts reads silence as nothing to report. They are excluded from the regression runner and should be either ported or deleted.</li>
+        <li><strong>Round 48's soak reports <code>chainHops: 0</code></strong>. Pre-existing and independent of recent work; the three direct chain assertions pass, so the soak's own setup is the suspect, not the chain.</li>
+        <li><strong>A handful of older suites assert superseded numbers</strong> &mdash; round 20's trunk radius, for one, which you halved deliberately. Ten were re-specified last round and more will need it. An assertion that encodes a decision you have since reversed is a liability, not coverage.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="open">
+    <div class="sechead"><h2>What is open</h2><span class="tag">ranked by what it unblocks</span></div>
+    <div class="prose">
+      <ul>
+        <li><strong>Acts 2, 3 and 4.</strong> Act 1 proved the pattern &mdash; seven stages, four objective kinds, dialogue that re-reads the state &mdash; and the remaining three are that job three more times, with the assets already loaded. Act 2 is the natural next slice: the astral aperture, the second cell, and Rob Collins finally put on the map.</li>
+        <li><strong>Sound.</strong> Flagged as open since the engine switch specifically because Phaser makes it cheap, then never picked up. There is still none.</li>
+        <li><strong>Companion story beats.</strong> Four characters with faces, kits and no interiority.</li>
+        <li><strong>The three unwatched failures.</strong> Now visible for the first time in many rounds, and party/aggro-adjacent enough to be one cause rather than three. First job of round 66.</li>
+        <li><strong>An undead roster worth a war.</strong> Death now has four chapters of campaign and two families to fight it with. A zombie or ghoul family &mdash; and a cultist humanoid, since the cult is named in every chapter and appears nowhere &mdash; would cost one extraction pass and make the game's best-written chain land.</li>
+        <li><strong>The dead suites.</strong> A day's cleanup that stops the regression runner from lying by omission.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <span>Sparkstone v65</span>
+    <span>Review generated round 65</span>
+    <span>Scale: RANK_COLORS, no diamond</span>
+  </footer>
+
+</div>

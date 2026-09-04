@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sparkstone (Phaser 3 prototype)</title>
+<!-- ROUND 27: cut from the project's own essence-gem art. Without this the
+     browser guesses /favicon.ico on every load and logs a 404. -->
+<link rel="icon" type="image/png" href="./public/assets/favicon.png">
+<style>
+  html, body { margin:0; padding:0; background:#0b0d10; height:100%; overflow:hidden; font-family: sans-serif; }
+  /* ROUND 38 -- the game-root is the CANVAS BOX now (exactly 960x600,
+     centred by the body), and every piece of play UI positions absolutely
+     INSIDE it: "I'd like to get my UI back inside the game." Everything
+     that used to be position:fixed against the browser viewport sat outside
+     the canvas on any screen bigger than the game. */
+  body { display:flex; align-items:center; justify-content:center; height:100vh; margin:0; }
+  /* ROUND 92 -- AND THE BOX IS SCALED UP TO FILL THE WINDOW.
+     "How do we make the game larger on the screen, currently it only takes
+      up about 25% of the screen size."
+     960x600 is a quarter of a 1440p desktop and about a seventh of a 4K one.
+     The box stays exactly 960x600 -- every UI element in this file is
+     positioned in those coordinates and none of them move -- and the whole
+     thing is TRANSFORMED instead. One number, set by fitGameRoot() at the
+     bottom of this file, scales canvas and UI together so their relationship
+     is untouched by definition rather than by re-checking 40 panels.
+     transform-origin is the centre because the body already centres the box;
+     with a top-left origin the scaled box grows down and right and hangs off
+     the screen. */
+  #game-root { position:relative; width:960px; height:600px; flex:0 0 auto;
+               transform-origin:center center; will-change:transform; }
+  /* `pixelated` on the canvas AND on the scaled box: the transform resamples
+     the already-rendered canvas, so without this the browser bilinearly
+     smears the pixel art at any factor, integer ones included. */
+  canvas { image-rendering: pixelated; }
+  #game-root { image-rendering: pixelated; }
+
+  #hud {
+    display:none;   /* ROUND 38 -- the control listing moved to the inventory's Controls tab */
+    position:fixed; top:8px; left:8px; color:#dfe6ee; font:11px/1.4 monospace;
+    background:rgba(0,0,0,0.45); padding:6px 8px; border-radius:6px; pointer-events:none;
+    /* ROUND 15: pre-wrap + a max-width so the controls hint can never run
+       off the right of the viewport the way the old single `pre` line did. */
+    white-space:pre-wrap; max-width:min(760px, calc(100vw - 32px));
+  }
+
+  /* --- resource bars, ported layout/colors from the original's top-left HUD
+     cluster (rgba(20,16,10,0.72) panel, HP #e53935, Stamina var(--ui-gold)/#8d6e63
+     locked, XP #8bc34a) -- mana added alongside since abilities use it here,
+     unlike the original where mana only lived in the Character tab. --- */
+  #resourceBars {
+    position:absolute; top:10px; left:10px; width:210px; z-index:5; background:rgba(20,16,10,0.72);
+    border-radius:4px; padding:8px; color:#f4e9d8; font:12px sans-serif;
+  }
+  .bar-row { margin-bottom:5px; }
+  .bar-track { width:100%; height:10px; background:rgba(0,0,0,0.4); border:1px solid #3a2f22; border-radius:2px; overflow:hidden; }
+  .bar-fill { height:100%; width:0%; transition: width 0.15s linear; }
+  #barHp .bar-fill { background:#e53935; }
+  #barMana .bar-fill { background:#4fc3f7; }
+  #barStamina .bar-fill { background:var(--ui-gold); }
+  #barXp .bar-fill { background:#8bc34a; }
+  #resourceLabel { margin-top:4px; font-size:11px; opacity:0.85; }
+  #debuffStrip { margin-top:3px; font-size:10px; line-height:1.5; display:flex; flex-wrap:wrap; gap:4px; max-width:250px; }
+  #debuffStrip .db {
+    padding:1px 5px; border-radius:7px; background:rgba(20,14,18,0.72);
+    border:1px solid currentColor; white-space:nowrap; letter-spacing:0.01em;
+  }
+  #debuffStrip .db b { font-weight:600; }
+
+  /* ---- ROUND 88: DRAFT E1, THE RETINUE ------------------------------------
+     WoW's oldest rule and the one worth taking: ONE FRAME SHAPE FOR EVERY
+     LIVING THING. The player's frame is a portrait, a name and bars; a
+     companion's is the same thing smaller; a summon's is the same thing again
+     with a depleting ring where the portrait would be, because the useful
+     question about a summon is not what it looks like but how long it has.
+     Learn the shape once and you can read the whole column. */
+  #retinue { position:absolute; top:0; left:10px; width:150px; z-index:5;
+    font:11px sans-serif; pointer-events:none; }
+  /* The header needs its own ground. Gold small-caps over grass reads; over
+     a market's grey-and-terracotta paving it does not, and the HUD has to be
+     legible on every surface in the game rather than on the one it was
+     screenshotted over. */
+  #retinue .ret-head { font:9px sans-serif; letter-spacing:0.09em; text-transform:uppercase;
+    color:var(--ui-gold-dim, #c9a94a); margin:0 0 3px; text-shadow:0 1px 2px #000;
+    background:rgba(20,16,10,0.72); border-radius:2px; padding:1px 5px; display:inline-block; }
+  #retinue .ret-head.sum { color:var(--hud-ec4, #c9a94a); }
+  /* The divider between the people and the made things is the player's own
+     four colours -- the one place on the HUD the essences show while you play. */
+  #retinue .ret-rule { height:3px; border-radius:2px; margin:7px 0 5px;
+    background:linear-gradient(90deg,
+      var(--hud-ec1,#6b5a35) 0 25%, var(--hud-ec2,#6b5a35) 25% 50%,
+      var(--hud-ec3,#6b5a35) 50% 75%, var(--hud-ec4,#6b5a35) 75% 100%); }
+  #retinue .unit { display:flex; align-items:center; gap:6px; background:rgba(20,16,10,0.72);
+    border:1px solid rgba(168,144,90,0.24); border-left:2px solid #a8905a;
+    border-radius:3px; padding:3px 5px; margin-bottom:3px; }
+  #retinue .unit.sum { border-left-color:var(--hud-ec4, #a8905a); }
+  #retinue .unit.hurt { border-left-color:#e53935; }
+  #retinue .unit.down { opacity:0.42; }
+  #retinue .u-port { width:24px; height:24px; flex:0 0 auto; border:1px solid #a8905a;
+    border-radius:2px; background:rgba(0,0,0,0.4); image-rendering:pixelated; }
+  #retinue .u-body { flex:1; min-width:0; }
+  #retinue .u-name { font:10.5px sans-serif; color:#f0e6d2; white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis; }
+  #retinue .u-name i { font-style:normal; color:#8a7e66; font-size:9px; }
+  #retinue .u-bar { height:5px; background:rgba(0,0,0,0.45); border-radius:1px;
+    overflow:hidden; margin-top:2px; }
+  #retinue .u-bar span { display:block; height:100%; }
+  /* A summon's remaining life, as a shape rather than a number: the ring
+     empties as it runs down, so a creature with six seconds left and one with
+     sixty are different objects at a glance. */
+  #retinue .u-ring { position:relative; width:24px; height:24px; flex:0 0 auto;
+    border-radius:50%; background:conic-gradient(var(--hud-ec4,#a8905a) var(--p,100%), rgba(0,0,0,0.55) 0); }
+  #retinue .u-ring::after { content:""; position:absolute; inset:4px; border-radius:50%;
+    background:rgba(20,16,10,0.95); }
+  /* THE CAP. Past three summons they fold into one row -- the column is
+     bounded at about 340px instead of running the height of the screen. */
+  #retinue .ret-more { font:10px sans-serif; color:#b9ab8c; background:rgba(20,16,10,0.72);
+    border:1px solid rgba(168,144,90,0.24); border-left:2px solid var(--hud-ec4,#a8905a);
+    border-radius:3px; padding:3px 6px; }
+  /* The essence rule under the player's own bars, same four colours. */
+  #essenceRule { height:3px; border-radius:2px; margin-top:6px;
+    background:linear-gradient(90deg,
+      var(--hud-ec1,#6b5a35) 0 25%, var(--hud-ec2,#6b5a35) 25% 50%,
+      var(--hud-ec3,#6b5a35) 50% 75%, var(--hud-ec4,#6b5a35) 75% 100%); }
+
+  /* --- character frame: standard-RPG-HUD portrait + name, sitting above
+     the resource bars inside the same panel -- the name is set in the
+     character creator (see #characterCreatorPanel) and shown here so it's
+     always visible during play, not just while the creator is open. --- */
+  #charFrame { display:flex; align-items:center; gap:8px; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid rgba(255,213,79,0.35); }
+  #charPortrait { width:36px; height:36px; background:rgba(0,0,0,0.4); border:2px solid #ffd54f; border-radius:3px; image-rendering:pixelated; flex-shrink:0; }
+  #charNameLabel { font:bold 14px sans-serif; color:#ffd54f; text-shadow:0 1px 2px #000; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #charRankLabel { font:bold 10px sans-serif; text-shadow:0 1px 2px #000; margin-top:1px; }
+
+  /* --- hotbar: 12 player-assignable ability slots.
+     Keys 1-4 / 5-8 / 9-0-minus-plus; pad A B X Y, L2+face, R2+face.
+     Weapon attacks are NOT on the hotbar any more — they live on
+     L1 (left hand) and R1 (right hand) / left- and right-click.
+     Cooldown sweep is a bottom-up dark overlay, same visual idea as the
+     original's drawHotbarSlot (fills from top as cooldown drains). --- */
+  #hotbar { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); display:flex; gap:4px; z-index:5; }
+  /* ROUND 38 -- the clock. Sun or moon plus HH:MM, top centre of the game
+     view; colours flip with the phase so it reads at a glance. */
+  #clockWrap { position:absolute; top:10px; left:50%; transform:translateX(-50%); z-index:5;
+    background:rgba(20,16,10,0.72); border:1px solid rgba(255,213,79,0.4); border-radius:4px;
+    padding:3px 10px; color:var(--ui-gold); font:bold 13px monospace; }
+  #clockWrap.night { color:#9db8e8; border-color:rgba(140,170,230,0.45); }
+  .hotbar-slot {
+    position:relative; width:52px; height:64px; background:rgba(20,16,10,0.78);
+    border:1px solid rgba(255,255,255,0.25); border-radius:4px; overflow:hidden;
+    color:#fff5e6; font:9px sans-serif; text-align:center;
+  }
+  /* ROUND 15: controller glyph per slot (A/B/X/Y, L2+face, R2+face). */
+  .hotbar-slot .slot-pad {
+    position:absolute; top:2px; right:3px; font-size:8px; line-height:9px;
+    color:var(--ui-gold); opacity:0.9; font-weight:bold; letter-spacing:0.2px;
+  }
+  /* ROUND 88 -- AN EMPTY SLOT HAS TO BE VISIBLE, OR THERE ARE NOT TWELVE OF
+     THEM. At opacity 0.4 over a 0.78-alpha panel an unfilled slot came out at
+     about 0.31 alpha, which on Cadence's paving is nothing at all: the
+     screenshot showed a row that simply stopped after the fourth ability. That
+     makes the bar look like a four-slot bar, and a player who cannot see slot
+     nine has no reason to go and bind something to it -- which is round 15's
+     own stated promise ("slots the player hasn't filled render empty rather
+     than collapsing, so the layout stays stable while a kit grows") failing
+     quietly. The frame stays clearly subordinate to a filled slot; it just
+     exists now. */
+  .hotbar-slot.slot-empty { opacity:0.62; }
+  .hotbar-slot.slot-empty .slot-swatch { border:1px dashed rgba(255,245,220,0.38); background:rgba(0,0,0,0.22) !important; }
+  .hotbar-slot.slot-empty .slot-num { opacity:0.7; }
+  .hotbar-slot.active { border-color:#ffd54f; box-shadow:0 0 4px #ffd54f; }
+  .hotbar-slot .slot-num { position:absolute; top:2px; left:3px; font-size:9px; opacity:0.85; }
+  /* ROUND 88 -- THE SWATCH IS SQUARE NOW, AND THAT IS THE WHOLE FIX.
+     "12 slots, 1 row, don't shrink and use the essence or awakening stone as
+     the icon instead of just a blob of color."
+     The first three were already true and had been since round 16 -- twelve
+     slots in one row, and `_abilitySourceIconUrl` resolving the stone's own
+     gem or the essence's cube for every bound ability. What was wrong is that
+     the swatch was 44x26 while every source sprite is square (essence cubes
+     40px, stone_pixel25 48px). `center/contain` then fitted a square into a
+     letterbox and drew it at 26px tall with air either side, which is exactly
+     what "a blob of color" looks like from across the screen. Square, and 34px
+     rather than 26, so the art is the slot rather than a stripe in it. */
+  .hotbar-slot .slot-swatch { position:absolute; top:12px; left:50%; margin-left:-17px;
+    width:34px; height:34px; border-radius:2px; }
+  .hotbar-slot .slot-cd { position:absolute; left:50%; margin-left:-17px; width:34px; top:12px; height:0; background:rgba(0,0,0,0.6); }
+  .hotbar-slot .slot-name { position:absolute; bottom:3px; left:0; right:0; font-size:8px; }
+  .hotbar-slot.locked { opacity:0.35; }
+
+  /* --- minimap: top-right corner, ported anchor/size from the original
+     (150x150, 14px inset). Rendered directly via 2D canvas, same as the
+     original's own flat-shape approach (town disc + player dot + quest
+     dots), not a Phaser camera. --- */
+  #minimapWrap { position:absolute; top:10px; right:10px; text-align:center; z-index:5; }
+  #minimapCanvas { background:rgba(6,5,3,0.78); border:1px solid rgba(255,255,255,0.35); border-radius:3px; }
+  #minimapLabel { color:#fff5e6; font:10px sans-serif; margin-top:2px; }
+  /* ROUND 42 -- the build stamp under the map. Deliberately dim and small:
+     it is a thing you look for, not a thing you read. */
+  #versionLabel { color:#fff5e6; opacity:0.45; font:9px sans-serif; margin-top:1px; letter-spacing:0.02em; }
+
+  /* --- floating "Press E to..." prompt --- */
+  #interactPrompt {
+    position:fixed; bottom:78px; left:50%; transform:translateX(-50%);
+    color:#fff5e6; font:bold 13px sans-serif; text-shadow:0 1px 3px #000;
+    background:rgba(0,0,0,0.35); padding:4px 10px; border-radius:4px;
+    display:none;
+  }
+
+  /* --- ROUND 22: location banner, shown for ~2s on walking into or out of
+     an interior so the transition is legible rather than an unexplained
+     teleport --- */
+  #locationBanner {
+    position:fixed; top:64px; left:50%; transform:translateX(-50%);
+    color:#ffd54f; font:600 20px/1.2 Georgia, 'Times New Roman', serif;
+    letter-spacing:0.06em; text-shadow:0 2px 6px #000, 0 0 18px rgba(0,0,0,0.9);
+    padding:6px 18px; display:none; pointer-events:none;
+    transition:opacity 120ms linear;
+  }
+
+  /* ======================================================================
+     ROUND 81 ITEM 1.1 -- ONE SET OF TOKENS FOR EVERY WINDOW.
+
+       "Align the overall inventory windows to match from a
+        color/border/font standpoint."
+
+     Every panel in the game had grown its own answer to the same three
+     questions. Measured before touching anything: FOUR different border
+     treatments (translucent white at 0.14, at 0.28, gold at 0.4, and a flat
+     #ffd54f on the buttons), THREE golds (#ffd54f, var(--ui-gold), var(--ui-gold)) used
+     interchangeably for the same job, and panel grounds ranging from
+     rgba(10,9,7,.97) to rgba(14,16,20,.97) to rgba(255,255,255,.04).
+
+     Rather than repaint each panel by hand -- which is how it got this way --
+     the palette is declared once here and everything downstream refers to it.
+     A future round changes the game's whole chrome by editing this block.
+
+     THE PALETTE IS THE RELIQUARY'S, because item 1 makes the Essences page a
+     reliquary and a page that does not match the window it lives in is worse
+     than either look on its own: brass edges, a dark stained ground, and a
+     serif for anything that is a NAME. Sans stays for body text and numbers,
+     which a serif at 11px does not do well.
+     ====================================================================== */
+  :root {
+    /* Ground: three depths. Panel, inset (a row or a well), and the deep
+       recess a socket or a portrait sits in. */
+    --ui-ground:      rgba(16, 13, 9, 0.975);
+    --ui-ground-2:    rgba(255, 245, 220, 0.045);
+    --ui-ground-deep: rgba(0, 0, 0, 0.34);
+    /* Brass: the edge, the lit edge, and the hairline between rows. */
+    --ui-brass:       #6b5a35;
+    --ui-brass-lit:   #a8905a;
+    --ui-brass-hair:  rgba(168, 144, 90, 0.24);
+    /* One gold, not three. #ffd54f was the most used and reads best on the
+       dark ground; var(--ui-gold) and var(--ui-gold) are gone as separate decisions. */
+    --ui-gold:        #ffd54f;
+    --ui-gold-dim:    #c9a94a;
+    /* Ink: body, secondary, and the faintest legible tier. */
+    --ui-ink:         #f0e6d2;
+    --ui-ink-2:       #b9ab8c;
+    --ui-ink-3:       #8a7e66;
+    --ui-radius:      6px;
+    --ui-serif:       Georgia, "Times New Roman", serif;
+    --ui-sans:        system-ui, "Segoe UI", Roboto, sans-serif;
+  }
+
+  /* --- generic overlay chrome shared by dialogue/shop/quest-board/inventory --- */
+  /* ROUND 67 -- the mixer's rows. */
+  #optionsPanel { width: 420px; max-width: 92vw; }
+  .opt-row { display:grid; grid-template-columns: 9.5rem 1fr 2.6rem; align-items:center;
+             gap:0.7rem; padding:0.5rem 0; border-bottom:1px solid rgba(255,255,255,0.08); }
+  .opt-row:last-child { border-bottom:none; }
+  .opt-row label { font-size:0.86rem; color:#cfc9d8; }
+  .opt-slider { width:100%; accent-color:#8e7cc3; }
+  .opt-val { font-variant-numeric: tabular-nums; text-align:right; font-size:0.82rem; color:#9b93aa; }
+  #optionsHint { margin-top:0.7rem; font-size:0.74rem; color:#8b8398; }
+  .overlay-panel {
+    position:fixed; left:50%; top:50%; transform:translate(-50%,-50%);
+    /* ROUND 40 -- opened panels are the TOP layer: the HUD (resource bars,
+       minimap, hotbar, clock) sits at z-index 5 and was painting over the
+       inventory. Slightly more opaque too, per the same request. */
+    z-index:20;
+    /* ROUND 81 (item 1.1) -- the shared chrome, from the tokens above. The
+       double border (brass outside, a dark hairline inside) is what makes a
+       panel read as a framed thing rather than as a rectangle with a stroke,
+       and it is the one detail carried from the Reliquary draft into every
+       window. */
+    background:var(--ui-ground);
+    border:1px solid var(--ui-brass);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,0.55), 0 8px 30px rgba(0,0,0,0.6);
+    border-radius:var(--ui-radius);
+    color:var(--ui-ink); font:13px var(--ui-sans); padding:16px 20px; display:none;
+  }
+  /* A heading is a NAME, so it is the serif. */
+  .overlay-panel h2 {
+    margin:0 0 10px 0; color:var(--ui-gold); font:400 18px/1.25 var(--ui-serif);
+    letter-spacing:0.4px;
+  }
+  .overlay-panel .close-hint { position:absolute; top:10px; right:14px; font-size:11px; color:var(--ui-ink-3); }
+  .row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--ui-brass-hair); gap:12px; }
+  .row:last-child { border-bottom:none; }
+  button.action-btn {
+    background:linear-gradient(180deg, #2f2617, #211a10);
+    color:var(--ui-gold); border:1px solid var(--ui-brass); border-radius:4px;
+    padding:4px 10px; font:12px var(--ui-sans); cursor:pointer;
+    box-shadow:inset 0 1px 0 rgba(168,144,90,0.18);
+  }
+  button.action-btn:hover { background:linear-gradient(180deg, #3d3120, #2a2115); border-color:var(--ui-brass-lit); }
+  button.action-btn:disabled { opacity:0.35; cursor:default; border-color:#5a5a5a; color:#ccc; box-shadow:none; }
+  /* ROUND 81 (item 1.1) -- a dropdown is a control like any other, and left
+     at the browser default it was the one white rectangle on every page. */
+  .overlay-panel select, .overlay-panel input[type=text] {
+    background:#1b1610; color:var(--ui-ink); border:1px solid var(--ui-brass);
+    border-radius:4px; padding:3px 6px; font:12px var(--ui-sans);
+  }
+  .overlay-panel select:focus, .overlay-panel input[type=text]:focus {
+    outline:none; border-color:var(--ui-brass-lit);
+  }
+
+  #dialogueBox { width:520px; bottom:90px; top:auto; left:50%; transform:translateX(-50%); }
+  #dialogueBox .npc-name { color:var(--ui-gold); font:400 15px/1.3 var(--ui-serif); margin-bottom:6px; }
+  /* ROUND 19: the guildmaster's grant line appends a bracketed award on its
+     own paragraph, so dialogue honours newlines. */
+  #dialogueText { white-space:pre-wrap; }
+  #dialogueChoices { display:none; margin-top:10px; gap:8px; }
+  #dialogueChoices.has-choices { display:flex; }
+
+  #shopPanel, #questBoardPanel { width:420px; max-height:70vh; overflow-y:auto; }
+  /* ROUND 6: widened for the new Inventory tab's table + paperdoll pair. */
+  /* ROUND 79 (bug 16) -- "The inventory screen should open larger."
+     726px by 70vh was sized against the 960x600 canvas, but the panel is
+     position:fixed and therefore lives in the BROWSER's viewport, not in the
+     game's -- so it had been leaving most of a modern screen empty while the
+     twenty-ability roster scrolled inside a box two thirds of a canvas wide.
+     The clamps are viewport units so it still fits a laptop and a phone: it
+     takes what is there and no more. */
+  /* ROUND 87 -- `isolation` ONLY, and NOT `position:relative`.
+     `.overlay-panel` already sets `position:fixed`, which is a positioned
+     element and therefore already the containing block the essence field's
+     `position:absolute; inset:0` needs. Adding `position:relative` overrode
+     the fixed positioning and took the centring transform's containing block
+     with it -- the whole inventory collapsed from 1180px to 318px, which is
+     the shrink-to-fit width of its own tab strip. Caught by measuring the
+     panel while chasing a map canvas that came out too small; the map was
+     downstream and innocent. */
+  #inventoryPanel { width:min(1180px, 96vw); max-height:min(900px, 92vh); overflow-y:auto;
+    isolation:isolate; }
+  /* ==================================================================
+     ROUND 87 -- DRAFT C3, THE LIVING FIELD.
+
+       "give me 3 drafts where the colors of a players essences give a
+        similar glow effect their entire inventory based on their unique
+        essences."
+
+     Four blurred washes in the player's own four essence colours, drifting
+     on a slow cycle behind every page of the inventory. The colours are
+     written onto the panel as --ec1..--ec4 by _applyEssenceField(), so a
+     different build gives a different window and two players' inventories
+     do not look alike.
+
+     CSS, NOT CANVAS, and that is the whole performance story. This costs
+     four absolutely-positioned divs and a transform animation the compositor
+     owns -- it never touches Phaser's display list, which is the budget that
+     actually binds in this game (see budgets.js). A canvas version would
+     have been four more things for the renderer to think about every frame
+     while the heaviest window in the game is open.
+
+     `isolation:isolate` on the panel and a negative z-index on the field
+     keep it behind the content without needing a stacking context on every
+     child. `pointer-events:none` so it never eats a click.
+     ================================================================== */
+  /* ROUND 87 -- DRAFT D2. The map owns the whole tab; everything else floats
+     on it in a dark plate so it stays readable over terrain. */
+  #mapStage { position:relative; width:100%; border:1px solid var(--ui-brass);
+    border-radius:var(--ui-radius); overflow:hidden; background:#141a12; }
+  #mapStage canvas { display:block; width:100%; height:auto; }
+  #mapControls { position:absolute; left:10px; top:10px; display:flex; gap:6px; }
+  #mapControls .action-btn { background:rgba(16,13,9,0.86); }
+  #mapZoomLabel { position:absolute; right:10px; top:10px;
+    font:600 12.5px var(--ui-serif); color:var(--ui-gold);
+    background:rgba(16,13,9,0.86); border:1px solid var(--ui-brass);
+    border-radius:4px; padding:3px 10px; }
+  #mapLegend { position:absolute; left:10px; bottom:10px; display:flex; gap:13px;
+    flex-wrap:wrap; font-size:11px; color:var(--ui-ink-2);
+    background:rgba(16,13,9,0.86); border:1px solid var(--ui-brass);
+    border-radius:4px; padding:5px 10px; }
+  #mapLegend i { display:inline-block; width:9px; height:9px; border-radius:2px;
+    margin-right:5px; vertical-align:-1px; }
+  #inventoryPanel > .essence-field { position:absolute; inset:0; z-index:-1;
+    pointer-events:none; overflow:hidden; border-radius:inherit; opacity:0.40;
+    contain:paint; }
+  /* ROUND 87 -- C3 PROMISED A MEASUREMENT, SO HERE IS THE MEASUREMENT, AND
+     IT IS NOT THE ONE I EXPECTED. Sampling rAF deltas with the field present
+     and again with it removed says the drift costs 66.7ms per frame on this
+     container. Four separate follow-ups say that number is not about this
+     effect at all:
+       blobs present but `animation:none` ... baseline
+       blobs present, animating, no background ... 66.7ms
+       animating with the layers promoted, and without ... 66.7ms both
+       the same drift stretched from 40s to 400s ... 66.7ms
+     Invariant to paint, to blur, to layer promotion and to speed. It is a
+     flat toll for ANY running CSS animation over the panel, paid by a
+     software rasteriser recompositing the page beside the Phaser canvas --
+     four blobs cost exactly what one would. So this is not a thing to
+     optimise; four gradients are free and the drift is the whole feature.
+     Worth knowing rather than worth fixing: the toll is only paid while the
+     inventory is open, and while it is open the panel occludes the world
+     entirely, so the frames being dropped are frames of something nobody is
+     looking at. `contain:paint` bounds the damage rect to the panel. */
+  .essence-field i { position:absolute; display:block; width:56%; height:120%;
+    filter:blur(64px); border-radius:50%; }
+  .essence-field i:nth-child(1){ left:2%;  top:-26%;    background:radial-gradient(circle, var(--ec1), transparent 64%); animation:ef1 40s ease-in-out infinite; }
+  .essence-field i:nth-child(2){ right:3%; top:-20%;    background:radial-gradient(circle, var(--ec2), transparent 64%); animation:ef2 46s ease-in-out infinite; }
+  .essence-field i:nth-child(3){ left:15%; bottom:-30%; background:radial-gradient(circle, var(--ec3), transparent 64%); animation:ef3 52s ease-in-out infinite; }
+  .essence-field i:nth-child(4){ right:11%;bottom:-26%; background:radial-gradient(circle, var(--ec4), transparent 62%); animation:ef4 58s ease-in-out infinite; }
+  @keyframes ef1{0%,100%{transform:translate(0,0)}50%{transform:translate(16%,10%)}}
+  @keyframes ef2{0%,100%{transform:translate(0,0)}50%{transform:translate(-14%,12%)}}
+  @keyframes ef3{0%,100%{transform:translate(0,0)}50%{transform:translate(12%,-13%)}}
+  @keyframes ef4{0%,100%{transform:translate(0,0)}50%{transform:translate(-11%,-9%)}}
+  /* A player who has asked their system not to animate does not get an
+     exception because it is pretty. The colours stay; the drift stops. */
+  @media (prefers-reduced-motion: reduce) { .essence-field i { animation:none; } }
+
+  /* --- character creator: preview canvas + name field + Body Type/Skin
+     Tone pickers. Hairstyle/Hair Color/Eye Color are deliberately not
+     here -- see src/data/appearance.js's header comment for why. --- */
+  #characterCreatorPanel { width:460px; }
+
+  /* ---- ROUND 60: the title screen ------------------------------------- */
+  /* Two stacked plate layers so a change is a dissolve, not a cut: at twenty
+     seconds apart a hard swap reads as a glitch rather than as a slideshow. */
+  #titleScreen { position:fixed; inset:0; display:none; flex-direction:column;
+    align-items:center; justify-content:center; z-index:400; background:#0b0b0f; }
+  /* ROUND 73 -- THE OPTIONS BUTTON DID NOTHING, AND THE CODE WAS FINE.
+     `titleOptions` has been wired to `_openOptions()` since round 67, and
+     `_openOptions` runs start to finish: it sets `_optionsOpen`, shows the
+     panel, and `_renderOptions` builds all four volume sliders. Every one of
+     those steps succeeded. The panel is `.overlay-panel`, which is z-index 20;
+     `#titleScreen` above is z-index 400 with a FULLY OPAQUE background and
+     `inset:0`. So the sliders were drawn, correctly, underneath an opaque
+     sheet covering the whole screen.
+     It shipped because the only test of it -- test_round67 -- calls
+     `_openOptions()` directly with no title screen up and asserts
+     `style.display`. A stacking fault is invisible to that: display is 'block'
+     either way. The round-73 suite reads the panel's own position against the
+     title screen's instead, which is a question about what the player can see.
+     The options panel is the one overlay that has to work from the title
+     screen, so it is the one overlay that outranks it. Layers, in order:
+     HUD 5 -> overlay panels 20 -> title screen 400 -> options 420 -> tips 500. */
+  #optionsPanel { z-index:420; }
+  /* ROUND 73 -- the potion rack under the paperdoll, and any future block of
+     rows that wants to sit inside a tab as its own titled group. */
+  /* ROUND 73 -- the quest tracker, under the minimap. `text-align:left`
+     overrides #minimapWrap's centring: a progress list reads as a list only
+     when its rows share a left edge. Width is pinned to the map's 150px so the
+     two read as one block. */
+  #questTracker { width:150px; text-align:left; margin-top:5px; color:#fff5e6;
+    font:10px/1.35 sans-serif; }
+  #questTracker .qt-row { background:rgba(6,5,3,0.72);
+    border:1px solid var(--ui-brass); border-left:2px solid var(--ui-gold);
+    border-radius:2px; padding:3px 5px; margin-bottom:3px; }
+  #questTracker .qt-row.qt-ready { border-left-color:#8bc34a; }
+  #questTracker .qt-name { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #questTracker .qt-prog { opacity:0.75; }
+  .panel-sub { border-top:1px solid var(--ui-brass-hair); padding-top:9px; }
+  .panel-sub .row { display:flex; align-items:center; gap:8px; padding:3px 0; }
+  select.potion-pick { flex:1; background:rgba(0,0,0,0.35); color:#fff5e6;
+    border:1px solid rgba(255,255,255,0.25); border-radius:3px; padding:2px 4px;
+    font:12px sans-serif; }
+  .title-plate { position:absolute; inset:0; background-size:cover;
+    background-position:center; image-rendering:pixelated;
+    transition:opacity 1.6s ease-in-out; opacity:0; }
+  /* The world is the backdrop, not the subject -- darkened and slightly
+     desaturated so white type stays readable over a bright meadow AND over
+     a dark cave without the menu needing its own panel. */
+  /* Two layers: a vertical gradient for the frame, and a radial pool behind
+     the menu itself. The gradient alone left the version line and the hotkey
+     hint washed out over a bright plate -- they sit in the middle band, which
+     is exactly where a top-and-bottom gradient is thinnest. */
+  #titleScrim { position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse 46% 42% at 50% 52%, rgba(6,6,10,.78) 0%,
+        rgba(6,6,10,.42) 55%, rgba(6,6,10,0) 100%),
+      linear-gradient(180deg, rgba(8,8,12,.86) 0%, rgba(8,8,12,.5) 38%,
+        rgba(8,8,12,.58) 70%, rgba(8,8,12,.92) 100%); }
+  #titleInner { position:relative; display:flex; flex-direction:column;
+    align-items:center; gap:26px; }
+  #titleName { font:700 62px/1 'Trebuchet MS', system-ui, sans-serif;
+    letter-spacing:.10em; color:#ffe9b8; margin:0;
+    text-shadow:0 3px 0 #6b4a1c, 0 0 26px rgba(255,196,92,.5); }
+  #titleVersion { font:13px system-ui; color:#ddd0b4; opacity:.92;
+    letter-spacing:.22em; text-transform:uppercase; margin-top:-14px;
+    text-shadow:0 1px 4px rgba(0,0,0,.95); }
+  #titleMenu { display:flex; flex-direction:column; gap:12px; margin-top:16px; }
+  .title-btn { min-width:250px; padding:13px 26px; cursor:pointer;
+    font:600 17px system-ui; letter-spacing:.06em; color:#f4ead6;
+    background:rgba(24,22,30,.86); border:1px solid #6d5c3a; border-radius:6px;
+    transition:background .12s, border-color .12s, transform .08s; }
+  .title-btn:hover:not(:disabled) { background:rgba(58,48,32,.94);
+    border-color:#c9a04d; transform:translateY(-1px); }
+  .title-btn:disabled { opacity:.38; cursor:default; }
+  #titleSlots { display:none; flex-direction:column; gap:10px; width:520px; }
+  #titleSlotsHead { font:600 15px system-ui; color:#e8dcc0; letter-spacing:.08em;
+    text-align:center; margin-bottom:2px; }
+  #titleSlotList { display:flex; flex-direction:column; gap:7px;
+    max-height:400px; overflow-y:auto; }
+  .save-row { position:relative; padding:11px 15px; cursor:pointer;
+    background:rgba(22,20,27,.88); border:1px solid #4a4030; border-radius:5px; }
+  .save-row:hover:not(.disabled) { border-color:#c9a04d; background:rgba(48,40,28,.94); }
+  .save-row.disabled { opacity:.4; cursor:default; }
+  .save-main { font:600 15px system-ui; color:#f2e7d0; }
+  .save-rank { font:11px system-ui; color:#c9a04d; text-transform:uppercase;
+    letter-spacing:.1em; margin-left:7px; }
+  .save-sub { font:12px system-ui; color:#a89b83; margin-top:2px; }
+  .save-sub.dim { color:#7d735f; font-size:11px; }
+  .save-when { position:absolute; right:14px; top:12px; font:11px system-ui;
+    color:#8a7f68; }
+  #titleHint { font:12px system-ui; color:#b0a48c; letter-spacing:.05em;
+    text-shadow:0 1px 4px rgba(0,0,0,.95); }
+
+  #creatorBody { display:flex; gap:16px; align-items:flex-start; margin-top:4px; }
+  #creatorPreview { width:160px; height:160px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.2); border-radius:4px; image-rendering:pixelated; flex-shrink:0; }
+  #creatorFields { flex:1; min-width:0; }
+  #creatorFields .row { border-bottom:none; padding:5px 0; }
+  #creatorNameInput {
+    flex:1; margin-left:10px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.25);
+    color:#fff5e6; border-radius:4px; padding:5px 7px; font:13px sans-serif;
+  }
+  .picker-label { flex:1; text-align:center; }
+  .picker-arrow { width:28px; }
+  #creatorConfirmBtn { margin-top:12px; }
+
+  /* --- ROUND 48 (item 4): the team-name prompt and the Team tab ---
+     The prompt borrows #creatorNameInput's look wholesale rather than
+     inventing a second field style -- it IS the same control doing the same
+     job one step further into the game. */
+  /* Never wraps INSIDE itself -- a two-line tab beside eight one-line ones is
+     what made the strip look broken. It takes the row it needs (see #invTabs
+     above) and, at the outer limit of what a player can type, ellipsises. */
+  #invTabTeamBtn { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+  #teamNamePanel { width:420px; }
+  #teamNameBlurb { opacity:0.8; font-size:12.5px; margin:6px 0 10px; line-height:1.45; }
+  #teamNameInput {
+    flex:1; margin-left:10px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.25);
+    color:#fff5e6; border-radius:4px; padding:5px 7px; font:13px sans-serif;
+  }
+  #teamNameConfirmBtn { margin-top:12px; }
+  /* One card per member. The role stripe down the left edge is coloured by
+     PARTY_ROLE_COLOR, so healer/tank/melee/ranged reads before the label
+     does -- the same colour those roles already float their numbers in. */
+  .team-member {
+    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.14);
+    border-left-width:4px; border-radius:4px; padding:9px 10px; margin-bottom:10px;
+  }
+  .team-member-head { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin-bottom:5px; }
+  .team-member-name { font-weight:bold; font-size:13.5px; }
+  .team-member-role { font-size:11px; opacity:0.8; }
+  .team-member-tag {
+    font-size:10px; padding:1px 6px; border-radius:8px; border:1px solid currentColor; opacity:0.9;
+  }
+  .team-member-blurb { font-size:11.5px; opacity:0.7; font-style:italic; margin:0 0 6px; line-height:1.4; }
+  .team-stat-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:4px 10px; margin-bottom:7px; }
+  .team-stat { font-size:11.5px; display:flex; justify-content:space-between; gap:6px; }
+  .team-stat span:first-child { opacity:0.62; }
+  .team-hp-bar { height:5px; border-radius:3px; background:rgba(0,0,0,0.45); overflow:hidden; margin-bottom:7px; }
+  .team-hp-fill { height:100%; background:#8bc34a; }
+  .team-ability-h { font-size:11px; color:var(--ui-gold); opacity:0.9; margin:0 0 3px; }
+  /* ROUND 49 -- the companion paperdoll and socket rack, in the Team tab.
+     Two columns of slots so ten of them read as a doll rather than as a list,
+     and the same warm-on-dark palette the rest of the sheet uses. */
+  .party-doll { display:grid; grid-template-columns:1fr 1fr; gap:4px; margin:0 0 8px; }
+  .party-slot { background:rgba(255,255,255,0.035); border:1px solid rgba(255,255,255,0.07);
+                border-radius:4px; padding:4px 6px; display:flex; flex-direction:column; gap:2px; }
+  .party-slot.filled { background:rgba(255,202,40,0.07); border-color:rgba(255,202,40,0.22); }
+  .party-slot-k { font-size:9.5px; text-transform:uppercase; letter-spacing:0.05em; opacity:0.55; }
+  .party-slot-v { font-size:11px; line-height:1.25; }
+  .party-slot-none { font-size:10px; opacity:0.35; font-style:italic; }
+  .party-btn { font-size:10px; padding:2px 6px; margin:1px 2px 0 0; }
+  .party-sockets { display:flex; flex-direction:column; gap:4px; margin:0 0 8px; }
+  .party-socket-row { background:rgba(255,255,255,0.035); border:1px solid rgba(255,255,255,0.07);
+                      border-radius:4px; padding:4px 6px; }
+  .party-stone { display:inline-block; background:rgba(129,199,132,0.16); border:1px solid rgba(129,199,132,0.3);
+                 border-radius:3px; padding:0 5px; margin:0 3px 2px 0; font-size:10.5px; color:#a5d6a7; }
+  .party-stats { display:flex; flex-wrap:wrap; gap:3px; margin:0 0 8px; }
+  .party-stat { background:rgba(79,195,247,0.13); border:1px solid rgba(79,195,247,0.28);
+                border-radius:3px; padding:0 5px; font-size:10.5px; color:#81d4fa; }
+  .party-socket-note { font-size:10px; opacity:0.5; font-style:italic; margin:-4px 0 8px; }
+  .team-ability { font-size:11.5px; padding:2px 0; display:flex; justify-content:space-between; gap:8px; }
+  .team-ability-desc { font-size:10.5px; opacity:0.6; line-height:1.35; }
+
+  /* ROUND 48 (item 4) -- the strip WRAPS now. It was eight equal cells on one
+     row; the ninth is "Team (name)", whose width is whatever the player typed,
+     and forcing that onto the same row either wrapped every tab to three lines
+     tall or clipped the team's name down to "Team (…". Wrapping lets each
+     label stay whole and costs one extra row only when the names need it.
+     `flex:0 1 auto` (rather than the old flat `flex:1`) is what lets a long
+     tab take the room it needs instead of being squeezed to an eighth. It is
+     deliberately not `1 1 auto`: a GROWING tab left alone on the wrapped
+     second row stretches to the full width of the panel, which reads as a
+     banner rather than as a tab. */
+  #invTabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  #invTabs button { flex:0 1 auto; min-width:74px; }
+  /* ROUND 19: which tab is showing, so controller paging (L1/R1) is legible
+     without a mouse hovering anything. */
+  /* ROUND 81 (item 1.1) -- the active tab is a LIT brass edge, not a third
+     gold. It was var(--ui-gold) against the strip's #ffd54f, which is two golds
+     doing one job. */
+  #invTabs button.tab-active { background:linear-gradient(180deg,#4a3a20,#332815);
+    border-color:var(--ui-brass-lit); color:var(--ui-gold); box-shadow:inset 0 1px 0 rgba(200,175,110,0.3); }
+  /* ROUND 47 (item 1) -- the shop's Buy/Sell toggle reuses the tab styling so
+     "which side of the counter am I on" reads the same way paging tabs does. */
+  #shopModeTabs button { flex:1; }
+  #shopCatTabs button { flex:1; font-size:11.5px; padding:5px 4px; }
+  #shopCatTabs button.tab-active { background:#5a4526; border-color:var(--ui-gold); color:#fff3cd; }
+  #shopCatTabs button:disabled { opacity:.32; cursor:default; }
+  #shopModeTabs button.tab-active { background:#5a4526; border-color:var(--ui-gold); color:#fff3cd; }
+  /* ROUND 20: the controller's selection ring inside any overlay. Uses an
+     outline rather than a border so it never reflows the element it lands
+     on, and a matching glow so it reads at a glance on a busy panel. */
+  .menu-focus {
+    outline:2px solid var(--ui-gold) !important; outline-offset:1px;
+    box-shadow:0 0 8px rgba(255,224,130,0.75) !important;
+  }
+  #invTabsHint { font-size:10px; opacity:0.5; text-align:right; margin:-6px 0 8px; }
+  .inv-tab-content { display:none; }
+  .inv-tab-content.active { display:block; }
+
+  /* --- RESTORED round 4: Character tab (equipment/attributes/backpack) --- */
+  /* ROUND 81 (item 1.1) -- serif, one gold, brass rule. */
+  .inv-section-h { margin:16px 0 6px; color:var(--ui-gold);
+    font:400 15px/1.3 var(--ui-serif); letter-spacing:0.4px;
+    border-top:1px solid var(--ui-brass-hair); padding-top:11px; }
+  .equip-slots { display:flex; flex-direction:column; gap:8px; }
+  .equip-slot { background:var(--ui-ground-2); border:1px solid var(--ui-brass-hair); border-radius:4px; padding:8px; }
+  .equip-slot-empty { opacity:0.75; }
+  .equip-slot-title { font-size:12.5px; margin-bottom:4px; }
+  .equip-slot .row { padding:3px 0; }
+
+  /* ======================================================================
+     ROUND 81 ITEM 1 -- THE RELIQUARY.
+
+       "Lets implement the Reliquary visual."
+
+     Draft 9 of round 80, built for real. Four leaded panels in brass, one per
+     essence, with the awakening stones set as glass roundels behind their own
+     rarity-coloured came.
+
+     WHAT IT IS ACTUALLY FIXING, measured on the page it replaces: the old
+     Essences tab was four stacked cards of eight text rows each, so seeing a
+     whole kit took about 1,150px of scrolling and the three essences never
+     shared the screen with the confluence they formed. Four columns puts all
+     sixteen sockets and all four essences in one view.
+
+     THE ORDER INSIDE A PANEL IS ITEM 1.2's: attribute, then essence.
+
+       "Add the associated attribute above each essence."
+
+     Which is the right way round for more than tidiness. The attribute is
+     what the slot IS -- a permanent bond to Power or Speed or Recovery -- and
+     the essence is what was put in it. Reading "Power / Blood" tells you the
+     shape of the build; reading "Blood — bound to Power", as the old title
+     line did, buries the durable half at the end of a sentence.
+     ====================================================================== */
+  /* STRETCH, not start: four panels of different heights leave their brass
+     plaques at four different levels, which reads as four unrelated objects
+     rather than as one reliquary. Each panel is a column that fills the row. */
+  .rq-wrap { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:10px;
+    align-items:stretch; }
+  .rq-panel { display:flex; flex-direction:column; }
+  .rq-glass { flex:1 0 auto; align-content:start; }
+  .rq-panel {
+    position:relative; border:2px solid var(--ui-brass); border-radius:9px 9px 3px 3px;
+    background:linear-gradient(180deg, color-mix(in srgb, var(--c) 8%, #14120e), #0d0b08);
+    box-shadow:inset 0 0 0 1px #2b2519, 0 3px 12px rgba(0,0,0,0.5);
+    overflow:hidden; min-width:0;
+  }
+  .rq-panel.rq-conf { border-color:var(--ui-brass-lit); }
+  .rq-panel.rq-empty { --c:#6b6b6b; opacity:0.72; }
+  /* --- the arch: attribute, halo, name, standing ------------------------- */
+  .rq-arch {
+    padding:9px 10px 10px; text-align:center; border-bottom:1px solid #4b3f26;
+    background:radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--c) 18%, transparent), transparent 72%);
+  }
+  /* ITEM 1.2 -- the attribute, above the essence, in the panel's brass rather
+     than in the essence's own colour: it belongs to the SLOT, which does not
+     change, not to the essence, which was chosen. */
+  .rq-attr {
+    font:400 11px/1 var(--ui-serif); letter-spacing:0.22em; text-transform:uppercase;
+    color:var(--ui-gold-dim); margin-bottom:7px;
+  }
+  .rq-halo {
+    width:74px; height:74px; margin:0 auto 7px; display:grid; place-items:center;
+    border-radius:50% 50% 46% 46%;
+    background:radial-gradient(circle at 50% 34%, color-mix(in srgb, var(--c) 28%, #1a1610), #0b0906);
+    border:2px solid color-mix(in srgb, var(--c) 45%, var(--ui-brass));
+  }
+  .rq-halo img { width:52px; height:52px; image-rendering:pixelated; }
+  .rq-name { font:400 16px/1.2 var(--ui-serif); letter-spacing:0.4px; }
+  .rq-standing { margin-top:5px; }
+  .rq-standing .ess-standing { justify-content:center; font-size:10.5px; gap:5px; }
+  .rq-standing .ess-bar { max-width:100px; }
+  .rq-note { font-size:10px; color:var(--ui-ink-3); font-style:italic; margin-top:4px; line-height:1.35; }
+  /* --- the glass: four roundels, two by two ------------------------------ */
+  .rq-glass { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:#4b3f26; padding:1px; }
+  .rq-round {
+    background:#100e0a; padding:9px 5px 8px; text-align:center;
+    display:flex; flex-direction:column; align-items:center; gap:5px; min-width:0;
+  }
+  .rq-round.rq-innate { grid-column:1 / -1; padding:7px 6px; }
+  .rq-round img { width:34px; height:34px; image-rendering:pixelated; border-radius:50%;
+    box-shadow:0 0 0 2px color-mix(in srgb, var(--r) 65%, transparent),
+               0 0 12px color-mix(in srgb, var(--r) 40%, transparent); }
+  .rq-empty-socket { width:34px; height:34px; border-radius:50%;
+    background:radial-gradient(circle at 50% 32%, #0a0806, #050403);
+    box-shadow:inset 0 3px 7px rgba(0,0,0,0.95), 0 0 0 2px rgba(107,90,53,0.5); }
+  /* Every string in a roundel is bounded. A stone name or an ability name is
+     generated -- "Cast of Perfected Draught" is a real one -- so the cell has
+     to survive a long one rather than be sized for the short ones. Two lines
+     then an ellipsis, and `min-width:0` on the flex child so the clamp can
+     actually take effect inside a grid track. */
+  .rq-sname { font:400 11px/1.2 var(--ui-serif); color:var(--ui-ink-2);
+    max-width:100%; overflow-wrap:anywhere; }
+  .rq-sgrant { font-size:10px; line-height:1.25; max-width:100%; }
+  /* `.granted` is built for a wide table row -- one flex line, nowrap,
+     ellipsis -- and a 90px roundel is not that. Here it wraps instead of
+     truncating, because an ability called "Cast of Perfected Draught" cut to
+     "Cast of Perfected Dra" tells the player less than nothing. `display:flex`
+     is KEPT rather than switched to inline: the A/P badge is a flex child with
+     a fixed 13px box, and making its parent inline collapsed it to a sliver
+     (which is exactly what the first pass at this rule did). */
+  .rq-sgrant .granted { display:flex; flex-wrap:wrap; justify-content:center;
+    white-space:normal; overflow:visible; text-overflow:clip; gap:4px;
+    font-size:10px; line-height:1.25; overflow-wrap:anywhere; }
+  .rq-sgrant .granted-kind { font-size:8.5px; }
+  /* --- the plaque: rank, and the count of stones set --------------------- */
+  .rq-plaque {
+    text-align:center; padding:6px 7px; font:400 12px/1.3 var(--ui-serif);
+    letter-spacing:0.1em;
+    background:linear-gradient(180deg,#2a2417,#1a160e); border-top:1px solid #4b3f26;
+  }
+  .rq-plaque small { display:block; font-size:9.5px; letter-spacing:0.14em;
+    color:var(--ui-ink-3); text-transform:uppercase; }
+  .rq-spine { padding:7px 9px; font-size:10px; color:var(--ui-ink-3);
+    border-top:1px solid var(--ui-brass-hair); line-height:1.4; }
+  /* A narrow window folds to two columns rather than crushing four. */
+  @media (max-width: 900px) { .rq-wrap { grid-template-columns:repeat(2, minmax(0,1fr)); } }
+  /* ROUND 87 -- DRAFT B2. The stat block under the Reliquary banner, in three
+     columns. This is the whole point of the merge: the old sheet ran two
+     narrow columns down the left of a panel that was half empty, and these
+     are the same rows across the full width, under the four panels that
+     produce them. Collapses to two columns and then one, because a stat row
+     that wraps its label is worse than a taller page. */
+  .stat-cols { display:grid; grid-template-columns:repeat(3, minmax(0,1fr));
+    gap:0 22px; margin-top:14px; }
+  .stat-cols > div { min-width:0; }
+  .stat-cols .inv-section-h:first-child { border-top:none; padding-top:0; margin-top:0; }
+  @media (max-width: 1000px) { .stat-cols { grid-template-columns:repeat(2, minmax(0,1fr)); } }
+  @media (max-width: 700px)  { .stat-cols { grid-template-columns:1fr; } }
+  /* ROUND 47 (items 6 + 8) -- the per-essence standing bar, and the line that
+     replaced the Unequip button. */
+  .essence-permanent { font-size:11px; opacity:0.72; font-style:italic; margin:0 0 5px; }
+  /* ROUND 47 (items 10 + 11) -- the item hover card. Pointer-events:none so
+     it can never swallow the click on the button it is floating over, and
+     z-index above the overlay panels it is drawn on top of. */
+  /* ROUND 73 -- 500, not 400. A tooltip is always the topmost thing on screen;
+     at 400 it merely TIED with #titleScreen and with nothing else above it,
+     which left source order to decide, and source order put the title screen
+     later. Now that the options panel opens over the title screen (420), a tip
+     hovering one of its rows had to outrank both. */
+  #itemTip { position:fixed; display:none; z-index:500; pointer-events:none;
+    max-width:330px; padding:8px 10px; border-radius:5px;
+    background:var(--ui-ground); border:1px solid var(--ui-brass);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,0.55), 0 6px 20px rgba(0,0,0,0.6);
+    font-size:11.5px; line-height:1.45; color:var(--ui-ink); }
+  #itemTip .tip-name { font:400 14px/1.3 var(--ui-serif); color:var(--ui-ink); }
+  #itemTip .tip-sub { color:var(--ui-ink-3); font-size:10.5px; margin-bottom:4px; }
+  #itemTip .tip-buff { color:#a5d6a7; }
+  #itemTip .tip-none { opacity:0.55; font-style:italic; }
+  #itemTip .tip-cmp { margin-top:6px; padding-top:5px; border-top:1px solid var(--ui-brass-hair); }
+  #itemTip .tip-cmp-h { color:var(--ui-gold-dim); font-size:10.5px; text-transform:uppercase; letter-spacing:0.7px; }
+  #itemTip .tip-up { color:#81c784; }
+  #itemTip .tip-down { color:#e57373; }
+  #itemTip .tip-same { opacity:0.6; }
+  .ess-standing { display:flex; align-items:center; gap:7px; font-style:normal; opacity:1; font-size:11.5px; margin-bottom:3px; }
+  .ess-standing b { color:var(--ui-gold); font-weight:bold; }
+  .ess-bar { flex:1; min-width:60px; max-width:170px; height:6px; border-radius:3px;
+    background:var(--ui-ground-deep); box-shadow:inset 0 1px 2px rgba(0,0,0,0.7); overflow:hidden; }
+  .ess-bar-fill { display:block; height:100%; background:linear-gradient(90deg,#b8862f,var(--ui-gold)); }
+  .ess-pct { opacity:0.75; font-size:10.5px; white-space:nowrap; }
+  .ess-gated { color:#ffab91; font-style:normal; opacity:0.95; font-size:10.5px; margin-bottom:3px; }
+  /* --- RESTORED round 5: confluence slot + generated-ability roster --- */
+  .equip-slot-confluence { border-color:rgba(255,213,79,0.55); box-shadow:0 0 6px rgba(255,213,79,0.15) inset; }
+  .ability-row { padding:7px 0; border-bottom:1px solid var(--ui-brass-hair); }
+  .ability-row:last-child { border-bottom:none; }
+  .ability-row-head { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+  .ability-cat { font-size:10px; color:var(--ui-ink-3); text-transform:uppercase; letter-spacing:0.7px; flex-shrink:0; }
+  /* ROUND 16: each ability row leads with the texture of whatever granted
+     it -- the awakening stone's gem, or the essence/confluence cube. The
+     dot is the fallback for before the atlases have loaded. */
+  .ability-src-icon {
+    width:20px; height:20px; image-rendering:pixelated; object-fit:contain;
+    vertical-align:-5px; margin-right:6px;
+  }
+  .ability-src-dot {
+    display:inline-block; width:10px; height:10px; border-radius:2px;
+    vertical-align:-1px; margin-right:6px;
+  }
+  .ability-src { font-size:10.5px; opacity:0.6; margin-top:1px; }
+  .ability-desc { font-size:11px; opacity:0.8; margin-top:2px; line-height:1.35; }
+  /* ROUND 6: real-numbers line under every ability's flavor text. */
+  .ability-stats { font-size:10.5px; color:var(--ui-gold-dim); margin-top:2px; }
+
+  /* --- ROUND 6: standard Inventory tab -- item table (left) + D2-style
+     equipment paperdoll (right), per the user's attached reference. --- */
+  /* ROUND 19 -- these must out-rank `.inv-tab-content { display:none }`,
+     which an ID selector does automatically. Before this the Inventory tab's
+     table stayed on screen underneath whichever other tab was showing, as
+     soon as it had been rendered once. */
+  #invTab4.inv-tab-content { display:none; }
+  #invTab4.inv-tab-content.active { display:flex; gap:14px; align-items:flex-start; }
+  .item-table-wrap { flex:1; min-width:0; }
+  .item-table { width:100%; border-collapse:collapse; font-size:11.5px; }
+  .item-table th { text-align:left; color:var(--ui-gold); font:400 12px var(--ui-serif);
+    letter-spacing:0.5px; padding:5px 6px; border-bottom:1px solid var(--ui-brass); }
+  .item-table td { padding:5px 6px; border-bottom:1px solid var(--ui-brass-hair); vertical-align:top; }
+  .item-table td.item-desc { color:var(--ui-ink-2); font-size:10.5px; }
+  .item-table td.item-qty { text-align:right; }
+  /* ROUND 81 (item 1.1) -- brass, and it may SHRINK. `flex-shrink:0` on a
+     292px column inside a 1180px panel meant that once the item table needed
+     more than 874px the paperdoll's own right-hand controls ran off the edge
+     of the panel and were unreachable. Measured on the Inventory tab: three
+     potion-rack buttons clipped. A minimum keeps it readable and the shrink
+     keeps it inside. */
+  /* ROUND 81 (item 1.1) -- the potion rack's row, sized to its column. */
+  .potion-row { gap:6px; flex-wrap:nowrap; }
+  .potion-key { flex:0 0 auto; min-width:58px; color:var(--ui-ink-2); font-size:11px; }
+  .potion-row .potion-pick { flex:1 1 auto; min-width:0; }
+  .potion-state { flex:0 0 auto; min-width:44px; text-align:right; color:var(--ui-ink-3); font-size:10.5px; }
+  .potion-row .action-btn { flex:0 0 auto; padding:3px 7px; font-size:11px; }
+  .paperdoll-wrap { flex:0 1 292px; min-width:236px; background:var(--ui-ground-2);
+    border:1px solid var(--ui-brass); border-radius:var(--ui-radius); padding:10px;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,0.4); }
+  /* ROUND 15: the two hand slots are now PEERS (left hand = L1, right hand
+     = R1), so they get matching cells on either side of the body instead of
+     the old weapon-spans-two-rows / offhand-one-row asymmetry. The amulet
+     takes the top-right square, which is where D2 puts it anyway. */
+  .paperdoll {
+    display:grid; gap:6px;
+    grid-template-columns: 76px 1fr 76px;
+    grid-template-areas:
+      ".      helm  amulet"
+      "weapon body  hand2"
+      "chest  belt  gloves"
+      "legs   coins boots"
+      "ringL  .     ringR";
+  }
+  .pd-slot {
+    background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.18); border-radius:4px;
+    min-height:44px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-size:9.5px; text-align:center; padding:3px; gap:2px;
+  }
+  /* ROUND 27 -- the unequip button is absolutely positioned in the slot's
+     top-right corner, which is exactly where the label sits in the flex
+     column. In the wide slots that never mattered; in the six narrow armour
+     slots added this round the 29px-wide button painted over the last two
+     letters, so "CHEST" read as "CHE". Measured, not guessed: the label box
+     is never truncated (scrollWidth == clientWidth), it was covered. The fix
+     is a smaller button plus a little side padding on the label. */
+  .pd-slot .pd-label { opacity:0.45; font-size:8.5px; text-transform:uppercase; letter-spacing:0.5px; padding:0 14px; }
+  .pd-slot .pd-item { color:#ffd54f; line-height:1.2; }
+  .pd-slot.pd-empty .pd-item { color:#666; }
+  .pd-slot.pd-filled { border-color:rgba(255,213,79,0.5); }
+  .pd-weapon { grid-area:weapon; min-height:126px; }
+  .pd-helm { grid-area:helm; }
+  .pd-amulet { grid-area:amulet; max-height:118px; overflow-y:auto; justify-content:flex-start; }
+  .pd-amulet .pd-label { font-size:8px; line-height:1.25; }
+  .pd-body { grid-area:body; min-height:120px; background:rgba(0,0,0,0.5); }
+  .pd-hand2 { grid-area:hand2; min-height:126px; }
+  /* ROUND 27 -- the chest and shield ARMOUR slots (distinct from the two hand
+     slots above them, which hold weapons). */
+  .pd-chest { grid-area:chest; }
+  .pd-shieldA { grid-area:shieldA; }
+  .pd-gloves { grid-area:gloves; }
+  .pd-belt { grid-area:belt; }
+  /* ROUND 35 -- the new legs slot takes the centre cell of the lower-body
+     row, so the paperdoll still reads top-to-bottom anatomically
+     (belt -> legs -> boots) without growing a sixth row. The coin readout
+     it displaced moves down into the empty centre cell of the ring row. */
+  .pd-legs { grid-area:legs; }
+  .pd-boots { grid-area:boots; }
+  .pd-ringL { grid-area:ringL; min-height:30px; }
+  .pd-ringR { grid-area:ringR; min-height:30px; }
+  .pd-coins { grid-area:coins; min-height:30px; background:rgba(20,16,10,0.8); border:1px solid rgba(255,213,79,0.4); color:#ffd54f; font-size:11px; display:flex; align-items:center; justify-content:center; }
+  /* ROUND 30 -- a conjured relic shown inside the slot it belongs to,
+     rather than stacked under the character portrait. Visually subordinate
+     to the equipped item (dimmer, smaller, its own top rule) because it is
+     an always-on passive rather than something you put on or take off --
+     the slot can hold both at once and the player needs to tell them apart
+     at a glance. */
+  /* ROUND 31 -- a conjured item is a real item in a real slot now, so all
+     the paperdoll has left to say is that it came from a relic and cannot
+     be sold. */
+  .pd-conjured-tag {
+    margin-top:3px; padding-top:2px; border-top:1px dashed rgba(179,157,219,0.45);
+    color:#b39ddb; font-size:7.5px; line-height:1.2; width:100%; text-align:center;
+  }
+  #paperdollPortrait { image-rendering:pixelated; }
+  /* ROUND 7: restored item sprites -- shared icon styling. */
+  .item-icon { width:22px; height:22px; image-rendering:pixelated; vertical-align:middle; margin-right:6px; }
+  .pd-icon { image-rendering:pixelated; object-fit:contain; }
+  /* ROUND 10: minor-stat panel + rarity-tiered gear. */
+  .resist-grid { display:grid; grid-template-columns:repeat(3, auto); gap:2px 12px; text-align:right; }
+  .resist-cell { font-size:11px; white-space:nowrap; }
+  .resist-name { opacity:0.6; font-size:10px; }
+  /* `button.action-btn` above is element+class (0,1,1), so a bare
+     `.pd-unequip` (0,1,0) never overrode its 4px/10px padding -- which is
+     why this button stayed 29px wide and covered the slot labels. Matching
+     the element+class form is what actually makes it small. */
+  button.pd-unequip { position:absolute; top:2px; right:2px; padding:0 3px; font-size:9px; line-height:12px; }
+  .pd-slot { position:relative; }
+  /* ROUND 11: lore-accurate currency tracked under per-rank coin icons. */
+  .coin-strip { display:inline-flex; gap:9px; align-items:center; vertical-align:middle; }
+  .coin-cell { display:inline-flex; flex-direction:column; align-items:center; gap:1px; }
+  .coin-cell .coin-icon { display:block; image-rendering:auto; }
+  .coin-count { font-size:10px; line-height:1; color:#fff5e6; }
+  .coin-zero { opacity:0.35; }
+  /* ROUND 12: essence stones render as their own cube models. */
+  .essence-icon { image-rendering:pixelated; vertical-align:middle; margin-right:6px; }
+  /* ROUND 13: each socketed stone shows the ability that pairing awakened,
+     to the right of the stone's name. */
+  .stone-row { display:flex; align-items:center; gap:10px; }
+  .stone-row .stone-name { flex:0 0 auto; min-width:200px; }
+  .granted { flex:1 1 auto; min-width:0; font-size:11.5px; display:flex; align-items:center; gap:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .granted-kind {
+    flex-shrink:0; font-size:8.5px; font-weight:bold; line-height:12px; width:13px; text-align:center;
+    border-radius:2px; color:#14161a;
+  }
+  .granted-active { background:var(--ui-gold); }
+  .granted-passive { background:#7fb3d5; }
+  .granted-none { opacity:0.4; font-style:italic; }
+  /* ROUND 15: hotbar slot picker on each active ability. */
+  .ability-slot-pick { display:flex; align-items:center; gap:8px; margin-top:4px; }
+  .ability-slot-label { font-size:10px; text-transform:uppercase; letter-spacing:0.5px; opacity:0.55; }
+  .slot-select {
+    background:#20242b; color:#ffd54f; border:1px solid rgba(255,213,79,0.45);
+    border-radius:4px; padding:2px 5px; font:11px sans-serif;
+  }
+  .innate-row { border-bottom:1px dashed rgba(255,255,255,0.12); }
+
+  /* --- bestiary tab: family sections of portrait+blurb cards. Portraits
+     are plain <img> files (public/assets/bestiary/, see
+     extract_bestiary_portraits.py), not Phaser texture frames -- this
+     whole panel is DOM UI layered over the canvas, same as the rest of
+     the inventory. --- */
+  .bestiary-family { margin-bottom: 18px; }
+  .bestiary-family:last-child { margin-bottom: 4px; }
+  .bestiary-family h3 { margin: 0 0 4px; color: var(--ui-gold); font-size: 15px; }
+  .bestiary-family-blurb { font-size: 12px; opacity: 0.75; margin: 0 0 10px; line-height: 1.45; }
+  .bestiary-list { display: flex; flex-direction: column; gap: 8px; }
+  .bestiary-card {
+    display: flex; gap: 10px; align-items: flex-start; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; padding: 8px;
+  }
+  .bestiary-card img {
+    width: 48px; height: 48px; object-fit: contain; image-rendering: pixelated;
+    flex-shrink: 0; background: rgba(0,0,0,0.22); border-radius: 3px;
+  }
+  .bestiary-card-name { font-weight: bold; color: #fff5e6; margin-bottom: 3px; font-size: 13px; }
+  .bestiary-card-blurb { font-size: 11.5px; opacity: 0.85; line-height: 1.4; }
+
+  /* --- death screen: grey full-screen overlay per spec --- */
+  #deathScreen {
+    position:fixed; inset:0; background:rgba(60,60,60,0.94); display:none;
+    align-items:center; justify-content:center; flex-direction:column; z-index:100;
+  }
+  #deathScreen h1 { color:#eee; font-size:56px; margin:0; text-shadow:0 2px 8px #000; }
+  #deathScreen p { color:#ccc; font-size:16px; margin-top:14px; }
+</style>
+</head>
+<body>
+<div id="game-root">
+<div id="hud"></div>
+
+<div id="resourceBars">
+  <div id="charFrame">
+    <canvas id="charPortrait" width="36" height="36"></canvas>
+    <div>
+      <div id="charNameLabel"></div>
+      <div id="charRankLabel"></div>
+    </div>
+  </div>
+  <div class="bar-row" id="barHp"><div class="bar-track"><div class="bar-fill"></div></div></div>
+  <div class="bar-row" id="barMana"><div class="bar-track"><div class="bar-fill"></div></div></div>
+  <div class="bar-row" id="barStamina"><div class="bar-track"><div class="bar-fill"></div></div></div>
+  <div class="bar-row" id="barXp"><div class="bar-track"><div class="bar-fill"></div></div></div>
+  <div id="resourceLabel"></div>
+  <div id="essenceRule"></div>   <!-- ROUND 88 (E1) -- your four colours, on screen while you play -->
+
+  <!-- ROUND 57 -- what is currently ON you. Nineteen debuffs are worth nothing
+       if the player cannot tell a slow from a curse; the icons over the head
+       say WHICH, and this strip says how much and for how long. -->
+  <div id="debuffStrip"></div>
+</div>
+
+<!-- ROUND 88 -- DRAFT E1, THE RETINUE. Everything that fights for you hangs
+     off your own frame, in one column, in the same frame shape you have:
+     portrait, name, bars. Companions first because they are people; summons
+     under a rule in the confluence's colour because they are something you
+     made. Outside #resourceBars rather than inside it so the player panel
+     keeps its fixed width and the column can be empty without leaving a gap. -->
+<div id="retinue"></div>
+
+<div id="hotbar"></div>
+
+<div id="minimapWrap">
+  <canvas id="minimapCanvas" width="150" height="150"></canvas>
+  <div id="minimapLabel">Map</div>
+  <div id="versionLabel"></div>
+  <!-- ROUND 73 -- "Active Quests should be tracked next to the mini-map."
+       Inside #minimapWrap rather than beside it, so it inherits the map's
+       top-right anchor and z-index and cannot drift apart from it when the
+       canvas is resized. -->
+  <div id="questTracker"></div>
+</div>
+<div id="clockWrap"><span id="clockIcon">☀</span> <span id="clockTime">08:00</span></div>
+</div><!-- /game-root -->
+
+<div id="interactPrompt"></div>
+<div id="locationBanner"></div>
+
+<div id="dialogueBox" class="overlay-panel">
+  <div class="npc-name" id="dialogueName"></div>
+  <div id="dialogueText"></div>
+  <!-- ROUND 36 -- a god's offer needs a real choice, since declining must be
+       possible and must cost nothing. Empty (and hidden) for every other
+       conversation in the game. -->
+  <div id="dialogueChoices"></div>
+  <div class="close-hint">E / Esc to close</div>
+</div>
+
+<div id="shopPanel" class="overlay-panel">
+  <h2 id="shopTitle">Shop</h2>
+  <div class="close-hint">E / Esc to close</div>
+  <div id="shopCoins" style="margin-bottom:8px;opacity:0.85;"></div>
+  <!-- ROUND 47 (item 1) -- "Need to be able to sell items to the guildmaster.
+       No sell menu currently available." -->
+  <div id="shopModeTabs" style="display:flex;gap:6px;margin-bottom:9px;">
+    <button class="action-btn" data-shopmode="buy">Buy</button>
+    <button class="action-btn" data-shopmode="sell">Sell</button>
+  </div>
+  <!-- ROUND 63 -- the landmark banner gets its OWN element.
+     It first reused #locationBanner, which the room/region announcer also owns,
+     and the two fought: a site's hide-timer ran while a smithy's name was on
+     screen and blanked it. Round 22's banner assertion caught it. Two
+     announcers, two elements, no shared lifecycle. -->
+<div id="siteBanner" style="display:none;position:fixed;left:50%;top:74px;transform:translateX(-50%);z-index:120;padding:9px 20px;border-radius:5px;background:rgba(12,12,16,.82);border:1px solid #6d5c3a;color:#f2e6cc;text-align:center;transition:opacity .5s ease;pointer-events:none;font:14px system-ui;"></div>
+<!-- ROUND 62 -- category tabs. Every shop now carries three kinds of thing
+       (the guild alone stocks 45 items), and one flat list of 45 rows is a
+       scroll, not a shop. -->
+  <div id="shopCatTabs" style="display:flex;gap:6px;margin-bottom:9px;">
+    <button class="action-btn" data-shopcat="all">All</button>
+    <button class="action-btn" data-shopcat="stone">Awakening Stones</button>
+    <button class="action-btn" data-shopcat="essence">Essences</button>
+    <button class="action-btn" data-shopcat="gear">Gear</button>
+    <!-- ROUND 91 -- the auction house's three blocks. Hidden in every other
+         shop by _syncShopCatTabs, shown by _syncAuctionTabs. -->
+    <button class="action-btn" data-shopcat="lots" style="display:none;">Lots</button>
+    <button class="action-btn" data-shopcat="material" style="display:none;">Cores &amp; Quintessence</button>
+    <button class="action-btn" data-shopcat="gather" style="display:none;">Gatherables &amp; Parts</button>
+  </div>
+  <!-- ROUND 41: the auctioneer's daily-stock line, shown before any buying. -->
+  <div id="shopNote" style="display:none;margin:-2px 0 10px 0;padding:7px 9px;border-left:3px solid #ffd54f;background:rgba(255,213,79,0.08);color:#ffe9b0;font-style:italic;font-size:12px;line-height:1.4;"></div>
+  <div id="shopList"></div>
+</div>
+
+<!-- ROUND 90 -- THE CRAFTING BENCH. Five rows, filled top to bottom, each one
+     locking the ones below it, exactly as CRAFTING_SPEC.md section 6 draws it.
+     The resonance flag is shown BEFORE you commit, because a system that
+     rewards your build should tell you it is about to. -->
+<div id="craftPanel" class="overlay-panel">
+  <h2 id="craftTitle">Commission</h2>
+  <div class="close-hint">E / Esc to close</div>
+  <div id="craftSaying" style="margin:-2px 0 10px 0;padding:7px 9px;border-left:3px solid #ce93d8;background:rgba(206,147,216,0.08);color:#e9d4ee;font-style:italic;font-size:12px;line-height:1.4;"></div>
+  <div id="craftRows"></div>
+  <div id="craftPreview" style="margin-top:10px;padding:9px 11px;border:1px solid #4a4a56;border-radius:5px;background:rgba(255,255,255,0.03);"></div>
+  <div id="craftFooter" style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:10px;"></div>
+</div>
+
+<div id="questBoardPanel" class="overlay-panel">
+  <!-- ROUND 94 -- "It needs updated to 'adventure society board' and bounties
+       need renamed to contracts." Both, here and in every string the panel
+       prints; the element IDS are left alone on purpose, because six suites and
+       four render paths name them and renaming an id is a rename of the wiring
+       rather than of the words the player reads. -->
+  <h2>Adventure Society Board</h2>
+  <div class="close-hint">E / Esc to close</div>
+  <!-- ROUND 64 -- which board this is and how long its notices have left.
+       Nine boards now carry nine different lists on a weekly turnover, so
+       "Quest Board" alone no longer says where you are standing.
+       ROUND 94 -- and the player's own grading, which is what both gates below
+       refuse against. -->
+  <div id="bountyBoardName" style="opacity:0.7;font-size:11.5px;margin-top:4px;"></div>
+  <!-- ROUND 94 -- what the three tiers are, so a player who cannot take a
+       third-star contract still learns from the board what one is. -->
+  <div id="contractTiers" style="margin:7px 0 2px 0;padding:6px 9px;border-left:3px solid #ffd54f;background:rgba(255,213,79,0.06);"></div>
+  <div style="font-weight:bold;margin-top:6px;">Contracts</div>
+  <div id="bountyOfferList"></div>
+  <div style="font-weight:bold;margin-top:12px;">Your Contracts</div>
+  <div id="bountyActiveList"></div>
+</div>
+
+<!-- ROUND 67 -- the mixer. Four sliders, because the user asked for four:
+     overall sound, music, ambiance and spells. Reachable from the title screen
+     and from anywhere in play with O. -->
+<div id="optionsPanel" class="overlay-panel">
+  <div class="panel-head">
+    <span>Options</span>
+    <button id="optionsClose" class="action-btn">Close</button>
+  </div>
+  <div id="optionsBody"></div>
+  <div id="optionsHint">O opens this from anywhere. The mix is remembered between runs.</div>
+</div>
+
+<div id="inventoryPanel" class="overlay-panel">
+  <h2>Inventory</h2>
+  <div class="close-hint">I / Esc to close</div>
+  <div id="invTabs">
+    <button class="action-btn" data-tab="0">Character</button>
+    <button class="action-btn" data-tab="5">Essences</button>
+    <!-- ROUND 47 (item 2) -- "Essences screen should be split into 2 halves
+         the essences and awakening stones that are equipped (and the ability
+         to equip them) on the first page. Abilities on their own page." -->
+    <button class="action-btn" data-tab="7">Abilities</button>
+    <!-- ROUND 48 (item 4) -- "Once the team is formed a new tab called 'Team
+         (name)' which has the stats and abilities of the members of the team
+         listed." Hidden until there IS a team: a tab for a team of nobody is
+         a dead page, and the label cannot be written until the player has
+         named them. _refreshTeamTabButton fills both in. -->
+    <button class="action-btn" data-tab="8" id="invTabTeamBtn" style="display:none;">Team</button>
+    <button class="action-btn" data-tab="4">Inventory</button>
+    <button class="action-btn" data-tab="1">Quests</button>
+    <button class="action-btn" data-tab="2">Map</button>
+    <button class="action-btn" data-tab="3">Bestiary</button>
+    <button class="action-btn" data-tab="6">Controls</button>
+  </div>
+  <!-- ROUND 80 (items 3, 3.1) -- the shoulders turn the page and the D-pad
+       moves on it, in all four directions. The hint is the only place in the
+       game outside the Controls tab that says so, and a hint that describes
+       the previous scheme is worse than no hint. -->
+  <div id="invTabsHint">L1 / R1 change page · D-pad ◀ ▶ ▲ ▼ move within it · X activates · stick scrolls</div>
+  <div class="inv-tab-content" id="invTab0"></div>
+  <div class="inv-tab-content" id="invTab1"></div>
+  <div class="inv-tab-content" id="invTab2">
+    <!-- ROUND 47 -- zoom controls, and the canvas is square-centred on the
+         player's own REGION now rather than on the town origin of a 2176-tile
+         plane the player cannot walk across. -->
+    <!-- ROUND 87 -- DRAFT D2, FULL BLEED. The canvas fills the tab and the
+         controls float over its corners, so there is no wasted panel left of
+         the map (which is what item 2.1 was about) and no chrome eating the
+         map's own height. The canvas is sized by _fitWorldMapCanvas() at open
+         time rather than by a fixed 380x380 attribute: a canvas has to be
+         sized in ATTRIBUTES to have the right pixel grid, so CSS alone would
+         have stretched a 380px image across 900px and made the terrain mush. -->
+    <div id="mapStage">
+      <canvas id="worldMapCanvas" width="380" height="380"></canvas>
+      <div id="mapControls">
+        <button class="action-btn" data-map="out">&minus;</button>
+        <button class="action-btn" data-map="in">+</button>
+        <button class="action-btn" data-map="reset">Fit region</button>
+      </div>
+      <span id="mapZoomLabel"></span>
+      <div id="mapLegend">
+        <span><i style="background:#8d6a4a"></i>Settlement</span>
+        <span><i style="background:#4fc3f7"></i>You</span>
+        <span><i style="background:rgba(239,83,80,.92)"></i>Sensed</span>
+        <span><i style="background:#2f4d63"></i>Water</span>
+      </div>
+    </div>
+  </div>
+  <div class="inv-tab-content" id="invTab3"></div>
+  <div class="inv-tab-content" id="invTab6"></div>
+  <!-- ROUND 6: standard inventory tab -- item table + D2-style paperdoll -->
+  <div class="inv-tab-content" id="invTab4"></div>
+  <div class="inv-tab-content" id="invTab5"></div>
+  <!-- ROUND 47 (item 2) -- the ability roster, split off invTab5. -->
+  <div class="inv-tab-content" id="invTab7"></div>
+  <!-- ROUND 48 (item 4) -- the team roster. -->
+  <div class="inv-tab-content" id="invTab8"></div>
+</div>
+
+<!-- ROUND 47 (items 10 + 11) -- the hover card. One element, positioned and
+     filled on demand, rather than a tooltip baked into every row. -->
+<div id="itemTip"></div>
+
+<div id="characterCreatorPanel" class="overlay-panel">
+  <h2>Character Creator</h2>
+  <div class="close-hint">C / Esc to close</div>
+  <div id="creatorBody">
+    <canvas id="creatorPreview" width="160" height="160"></canvas>
+    <div id="creatorFields">
+      <div class="row">
+        <label for="creatorNameInput" style="opacity:0.85;">Name</label>
+        <input id="creatorNameInput" type="text" maxlength="18" placeholder="Input name">
+      </div>
+      <div class="row">
+        <button class="action-btn picker-arrow" id="creatorBodyTypeLeft">&lt;</button>
+        <span class="picker-label" id="creatorBodyTypeLabel"></span>
+        <button class="action-btn picker-arrow" id="creatorBodyTypeRight">&gt;</button>
+      </div>
+      <div class="row">
+        <button class="action-btn picker-arrow" id="creatorSkinToneLeft">&lt;</button>
+        <span class="picker-label" id="creatorSkinToneLabel"></span>
+        <button class="action-btn picker-arrow" id="creatorSkinToneRight">&gt;</button>
+      </div>
+    </div>
+  </div>
+  <div style="text-align:right;">
+    <button class="action-btn" id="creatorConfirmBtn">Confirm</button>
+  </div>
+</div>
+
+<!-- ROUND 48 (item 4) -- "When the team is formed a simple 'team name' prompt
+     should appear and let the player name the team whatever they want."
+     Deliberately built as an overlay-panel with a real <input>, exactly like
+     the character creator's name field above: window.prompt() would freeze the
+     Phaser loop mid-recruitment, cannot be reached with a controller, and
+     would be the only piece of chrome in the game that isn't drawn by the
+     game. "Simple" is the brief, so it is one field and one button. -->
+<div id="teamNamePanel" class="overlay-panel">
+  <h2>Name Your Team</h2>
+  <div class="close-hint">Enter to confirm</div>
+  <p id="teamNameBlurb">You are not travelling alone any more. What do people call you?</p>
+  <div class="row">
+    <label for="teamNameInput" style="opacity:0.85;">Team name</label>
+    <input id="teamNameInput" type="text" maxlength="22" placeholder="Input team name">
+  </div>
+  <div style="text-align:right;">
+    <button class="action-btn" id="teamNameConfirmBtn">Confirm</button>
+  </div>
+</div>
+
+<div id="deathScreen">
+  <h1 id="deathTitle">Nate Sucks</h1>
+  <p id="deathCountdown">Respawning in town in 5s...</p>
+</div>
+
+<script type="module" src="./src/main.js"></script>
+
+<!-- ROUND 60 -- the title screen. It sits in front of a world that is already
+     built, which is why the plates behind it are photographs of the real
+     regions and why New Game has nothing left to load. -->
+<div id="titleScreen">
+  <div id="titlePlateA" class="title-plate"></div>
+  <div id="titlePlateB" class="title-plate"></div>
+  <div id="titleScrim"></div>
+  <div id="titleInner">
+    <h1 id="titleName">SPARKSTONE</h1>
+    <div id="titleVersion">version</div>
+    <div id="titleMenu">
+      <button id="titleNew" class="title-btn">New Game</button>
+      <button id="titleLoad" class="title-btn">Load Save</button>
+      <button id="titleOptions" class="title-btn">Options</button>
+      <div id="titleHint">F5 quick-saves &middot; F9 chooses a slot</div>
+    </div>
+    <div id="titleSlots">
+      <div id="titleSlotsHead">Continue a run</div>
+      <div id="titleSlotList"></div>
+      <button id="titleBack" class="title-btn">Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================================================================
+     ROUND 92 -- FILL THE WINDOW.
+
+       "How do we make the game larger on the screen, currently it only
+        takes up about 25% of the screen size."
+
+     960x600 is a quarter of a 1440p desktop. The fix is NOT to make the
+     canvas bigger: round 38 put every piece of play UI inside the 960x600
+     box in those coordinates, and forty panels tuned against that box would
+     all have to be re-laid-out to change it. Scaling the box instead moves
+     the canvas and the UI by the same number, so their relationship is
+     untouched by construction rather than by re-checking each panel.
+
+     WHY NOT PHASER'S OWN Scale.FIT. It scales the CANVAS and knows nothing
+     about the DOM overlay sitting on top of it, so the UI would stay 960x600
+     over a canvas that is not, and every panel would drift off its anchor.
+     That is the exact failure round 38 fixed.
+
+     WHY NOT INTEGER-ONLY. A 1920x1080 screen fits 2.0x across and only 1.8x
+     down, so integer-only snaps it to 1x -- the game would stay the size the
+     user is complaining about on one of the two commonest desktop sizes.
+     Continuous fit with `image-rendering: pixelated` upscales by
+     nearest-neighbour, so some source pixels land two screen pixels wide and
+     some three; the seam is visible if you look for it and invisible while
+     playing, which is the right trade against half the screen. An exact
+     integer is snapped TO when the window is nearly one anyway, because free
+     is free.
+
+     PHASER MUST BE TOLD. Pointer positions are computed from the canvas's
+     bounding rect against the game size, so a CSS transform the ScaleManager
+     has not seen puts every click in the wrong place -- and it would do it
+     silently, since the cursor still moves. `scale.refresh()` re-reads the
+     rect; without that line this whole feature is a bug.
+     =================================================================== -->
+<script>
+(function () {
+  var ROOT_W = 960, ROOT_H = 600;
+  // How close to a whole number is "near enough to be one".
+  var SNAP = 0.12;
+
+  function fitGameRoot() {
+    var root = document.getElementById('game-root');
+    if (!root) return;
+    var s = Math.min(window.innerWidth / ROOT_W, window.innerHeight / ROOT_H);
+    // Never upscale past a sensible ceiling and never collapse to nothing;
+    // the low end matters on a phone in landscape, the high end on a wall.
+    s = Math.max(0.25, Math.min(s, 6));
+    var whole = Math.round(s);
+    if (whole >= 1 && Math.abs(s - whole) <= SNAP) s = whole;
+    else s = Math.floor(s * 100) / 100;   // hundredths, so the value is stable
+    root.style.transform = (s === 1) ? '' : 'scale(' + s + ')';
+    root.dataset.scale = String(s);
+    // Tell Phaser where the canvas actually is now. Guarded because this runs
+    // before the module has finished importing on a cold load.
+    var g = window.__sparkstoneGame;
+    if (g && g.scale && g.scale.refresh) { try { g.scale.refresh(); } catch (e) { /* not ready */ } }
+  }
+
+  window.__sparkstoneFitGameRoot = fitGameRoot;
+  window.addEventListener('resize', fitGameRoot);
+  window.addEventListener('orientationchange', fitGameRoot);
+  document.addEventListener('DOMContentLoaded', fitGameRoot);
+  fitGameRoot();
+  // The game finishes booting after this script runs, and the ScaleManager
+  // reads the canvas rect when it is created -- so refresh once more when it
+  // exists. Cheap, bounded, and it removes a first-click-is-wrong race.
+  var tries = 0;
+  var t = setInterval(function () {
+    if (window.__sparkstoneGame || ++tries > 40) { clearInterval(t); fitGameRoot(); }
+  }, 100);
+})();
+</script>
+</body>
+</html>
