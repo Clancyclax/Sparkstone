@@ -1,0 +1,124 @@
+probe test_round10 :: informational, no assertions (9997ms)
+probe test_round11 :: informational, no assertions (10314ms)
+probe test_round12 :: informational, no assertions (9329ms)
+probe test_round13 :: informational, no assertions (28069ms)
+ok  test_round15 :: 50/50 passed (13386ms)
+ok  test_round16 :: 31/31 passed (15406ms)
+ok  test_round17 :: 34/34 passed (27758ms)
+=== test_round19 :: 31/33 passed (86449ms) [isolated]
+FAIL  grass and street both still have variety   [["cityStone:0","cityStone:1","cityStone:10","cityStone:11","cityStone:12","cityStone:13","cityStone:14","cityStone:15","cityStone:2","cityStone:3","cityStone:4","cityStone:5","cityStone:6","cityStone:7","cityStone:8","cityStone:9","cityTile:0","cityTile:1","cityTile:10","cityTile:11","cityTile:12","cityTile:13","cityTile:14","cityTile:15","cityTile:2","cityTile:3","cityTile:4","cityTile:5","cityTile:6","cityTile:7","cityTile:8","cityTile:9"]]
+FAIL  the town has its own trees now   [n=6]
+ok  test_round20 :: 20/20 passed (16642ms)
+ok  test_round21 :: 20/20 passed (19147ms)
+ok  test_round22 :: 46 pass / 0 fail (71736ms) [isolated]
+=== test_round23 :: 39/44 passed (70533ms) [isolated]
+FAIL  the prop atlas loaded all 67 cells  -- 104 (8x9 grid)
+FAIL  every prop has its own atlas cell, numbered 0..n  -- 97 props
+FAIL  no two props share a source image  -- [["FURN0",["rostrum","benchRed"]],["FURN1",["tableRed","bedRough"]],["FURN2",["stoolRound","bedIron"]],["FURN3",["chairPadded","benchWood"]],["FURN4",["tableSmall","bedQuilt"]],["FURN5",["chairWhite","benchStone"]],["FURN6",["tableRound","bedCanopy"]],["FURN7",["chairPlain","podiumPale"]],["FURN8",["tableLong","shrineNiche"]],["FURN9",["tableDark","footstool"]],["FURN10",["benchLow","benchSlab"]],["FURN11",["tableRoundBig","podiumCarved"]],["FURN12",["rockingChair","benchIron"]],["FURN13",["stoolWood","podiumPlain"]],["FURN14",["stoolSquare","benchGarden"]]]
+=== test_round24 :: 30/31 passed (60587ms) [isolated]
+FAIL  round 23 still intact: guards and interiors  -- 2 watch of 6 guards, 447 door ends
+ok  test_round27 :: 58 passed, 0 failed (29549ms)
+=== test_round28 :: 36 passed, 2 failed (94054ms) [isolated]
+  FAIL  whip hits exactly one target in a crowd -- NO CROWD TO SWING AT: monster roster is 2. This is not a targeting failure -- the geometry was never exercised. Fix the setup, not _weaponHitTargets.
+  FAIL  sweeping weapons hit the crowd -- no crowd -- see above
+ok  test_round29 :: 57 passed, 0 failed (39550ms) [isolated]
+ok  test_round30 :: 22 passed, 0 failed (9074ms)
+ok  test_round31 :: 33 passed, 0 failed (10339ms)
+ok  test_round32 :: 36 passed, 0 failed (57486ms) [isolated]
+ok  test_round35 :: 1 pass / 0 fail (19036ms)
+ok  test_round36 :: 1 pass / 0 fail (18642ms)
+=== test_round38 :: 1 pass / 1 fail (64731ms) [isolated]
+FAIL 2:
+ok  test_round40 :: PASS 53  FAIL 0 (6540ms)
+=== test_round41 :: PASS 58  FAIL 3 (57990ms) [isolated]
+(no FAIL lines; the suite's own summary reports 3 failing)
+=== test_round43 :: PASS 54  FAIL 3 (44579ms) [isolated]
+(no FAIL lines; the suite's own summary reports 3 failing)
+ok  test_round44 :: PASS 74  FAIL 0 (51753ms) [isolated]
+=== test_round45 :: PASS 36  FAIL 1 (31724ms) [isolated]
+(no FAIL lines; the suite's own summary reports 1 failing)
+ok  test_round46 :: PASS 31  FAIL 0 (31458ms) [isolated]
+=== test_round47 :: 36/39 passed (54546ms) [isolated]
+FAILED: item5_hp_trigger_fires_once_per_wounding, item5_crit_empowers_next_spell_once, item5_crit_drought_guarantees_next_strike
+ok  test_round47_ui :: 37/37 passed (10544ms)
+DEAD test_round48_agentA :: exit 1, no assertions (85842ms) [isolated]
+A3) generator: {"deterministic":true,"distinct":396,"of":400,"undeadGraveWords":200,"beastClawWords":200,"namesTypeInside":112,"sample":["Miregorge the Ichorling","Wretchbrine the Flenser","Murkichor the Engulfer","The Blackbrine Devourer","The Slaughterchitin Nestlord"]}
+A4) active list: {"rows":[{"head":"Break the Far Field","sub":"Kill 5 Pallidjaw anywhere in The Nek. — rank 1 — 500 coins — 0 / 5"}]}
+errors: 0 | 404s: 0
+RESULT: FAIL
+=== test_round48_agentB :: 7 pass / 1 fail (105438ms) [isolated]
+FAIL  (b) Talking to Zeke opens the farm JOB OFFER with accept/decline  ->  Somewhere behind your eyes: "You went to bed.
+probe test_round48_gen :: informational, no assertions (48192ms)
+=== test_round48_runtime :: 22/27 passed (81108ms) [isolated]
+FAILED: reach_buff_is_applied_by_the_cast, ally_aura_bearer_gains_resistance_per_ally, ally_aura_dot_chance_procs_on_typed_damage, fate_crit_reroll_turns_a_failed_roll_into_a_crit, fate_a_reroll_that_misses_is_still_shown
+ok  test_round48_wire :: 6/6 passed (27081ms)
+ok  test_round49_integrity :: PASS 16  FAIL 0 (5033ms)
+ok  test_round49_outline :: PASS 51  FAIL 0 (33073ms) [isolated]
+ok  test_round49_party :: PASS 37  FAIL 0 (6878ms)
+ok  test_round49_stats :: PASS 34  FAIL 0 (5685ms)
+ok  test_round49_stealth :: PASS 45  FAIL 0 (39937ms) [isolated]
+=== test_round49_taunt :: 21 passed, 1 failed (106372ms) [isolated]
+FAIL  7. the game still boots and plays
+ok  test_round49_team :: PASS 23  FAIL 0 (6542ms)
+ok  test_round50 :: 44/44 passed (5582ms)
+probe test_round50_city :: informational, no assertions (24159ms)
+probe test_round50_depth :: informational, no assertions (7441ms)
+probe test_round50_probe :: informational, no assertions (5909ms)
+probe test_round50_shot :: informational, no assertions (6961ms)
+ok  test_round51_charters :: 24/24 passed (15562ms)
+ok  test_round52_hot :: 35/35 passed (11588ms)
+ok  test_round52_scaling :: 33/33 passed (10890ms)
+ok  test_round55 :: 38/38 passed (21707ms)
+ok  test_round56 :: 47/47 passed (29309ms)
+ok  test_round57 :: 61/61 passed (22383ms)
+ok  test_round58 :: 28/28 passed (43173ms)
+ok  test_round59 :: 35/35 passed (34359ms)
+DEAD test_round5_essence :: exit 1, no assertions (83241ms) [isolated]
+7) permanence= {"unequipButtons":0,"unsocketButtons":0,"saysPermanent":false,"confluence":"Action","rank":"iron","known":20}
+FAIL: the permanence is not stated
+7b) afterReequip= {"unequipButtons":0,"unsocketButtons":0,"saysPermanent":false,"confluence":"Action","rank":"iron","known":20}
+ERRORS []
+probe test_round5_regression :: informational, no assertions (16818ms)
+probe test_round6 :: informational, no assertions (11177ms)
+ok  test_round60 :: 26/26 passed (101598ms) [isolated]
+ok  test_round61 :: 18/18 passed (8426ms)
+ok  test_round62 :: 25/25 passed (28483ms)
+ok  test_round63 :: 20/20 passed (29432ms)
+ok  test_round64 :: 16 pass / 0 fail (57963ms) [isolated]
+ok  test_round65 :: 40/40 passed (11546ms)
+ok  test_round66 :: 46/46 passed (53477ms) [isolated]
+ok  test_round67 :: 31/31 passed (5725ms)
+ok  test_round68 :: 50/50 passed (31500ms)
+ok  test_round69 :: 18/18 passed (11144ms)
+probe test_round6_regression :: informational, no assertions (16821ms)
+probe test_round7 :: informational, no assertions (11717ms)
+ok  test_round71 :: 30/30 passed (13771ms)
+ok  test_round72 :: 33/33 passed (9068ms)
+=== test_round73 :: 45/46 passed (24543ms) [isolated]
+  FAIL  and it actually damages a monster, through the real update path — 2 damage to one of 16 live monsters
+ok  test_round74 :: 74/74 passed (19068ms)
+ok  test_round75 :: 1 pass / 0 fail (37621ms)
+ok  test_round75b :: 1 pass / 0 fail (22286ms)
+ok  test_round76b :: 24 pass / 0 fail (22561ms)
+ok  test_round76c :: 19 pass / 0 fail (31989ms)
+ok  test_round76d :: 26 pass / 0 fail (39020ms)
+ok  test_round76e :: 24 pass / 0 fail (21915ms)
+ok  test_round76f :: 21 pass / 0 fail (22888ms)
+ok  test_round77a :: 26 pass / 0 fail (93705ms) [isolated]
+ok  test_round77b :: 26 pass / 0 fail (33493ms)
+ok  test_round78a :: 29 pass / 0 fail (23406ms)
+ok  test_round78b :: 24 pass / 0 fail (22741ms)
+ok  test_round78c :: 14 pass / 0 fail (21969ms)
+ok  test_round79a :: 23 pass / 0 fail (41137ms)
+ok  test_round79b :: 22 pass / 0 fail (39303ms)
+ok  test_round79c :: 17 pass / 0 fail (38054ms)
+probe test_round8 :: informational, no assertions (10642ms)
+ok  test_round80_pad :: 14 pass / 0 fail (22872ms)
+ok  test_round80_saves :: 14 pass / 0 fail (71104ms) [isolated]
+ok  test_round81 :: 22 pass / 0 fail (24264ms)
+ok  test_round82 :: 47 pass / 0 fail (113391ms) [isolated]
+ok  test_round85 :: 34 pass / 0 fail (57963ms) [isolated]
+ok  test_round87 :: 13 pass / 0 fail (58822ms) [isolated]
+ok  test_round88 :: 28 pass / 0 fail (58845ms) [isolated]
+ok  test_round89 :: 26 pass / 0 fail (92484ms) [isolated]
+probe test_round9 :: informational, no assertions (10602ms)
