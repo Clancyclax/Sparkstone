@@ -1,0 +1,885 @@
+{
+ "A_T-Rex_made_of_Crys": {
+  "Attack": {
+   "cell": 90,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Death": {
+   "cell": 90,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Running": {
+   "cell": 90,
+   "cols": 8,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8
+   ]
+  }
+ },
+ "A_blob_or_slime_mons": {
+  "Attack": {
+   "cell": 86,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Death": {
+   "cell": 86,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Running": {
+   "cell": 86,
+   "cols": 8,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8
+   ]
+  }
+ },
+ "A_crystal_serpent_wi": {
+  "Attack": {
+   "cell": 88,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Death": {
+   "cell": 88,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Slither_Running": {
+   "cell": 88,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  }
+ },
+ "Idle": {
+  "Attack": {
+   "cell": 88,
+   "cols": 17,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    17,
+    17,
+    17,
+    17,
+    17,
+    17,
+    17,
+    17
+   ]
+  },
+  "Death": {
+   "cell": 118,
+   "cols": 11,
+   "rows": 1,
+   "dirs": [
+    "south"
+   ],
+   "frames": [
+    11
+   ]
+  },
+  "Walking": {
+   "cell": 88,
+   "cols": 8,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8
+   ]
+  },
+  "transforms_into_a_crystal": {
+   "cell": 68,
+   "cols": 17,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    17,
+    17,
+    17,
+    17,
+    17,
+    17,
+    17,
+    17
+   ]
+  }
+ },
+ "Skinny_with_blade_ar": {
+  "Attack": {
+   "cell": 90,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Death": {
+   "cell": 90,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Running": {
+   "cell": 90,
+   "cols": 8,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8
+   ]
+  }
+ },
+ "a_crystal_insect_wi": {
+  "Attack": {
+   "cell": 90,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Death": {
+   "cell": 90,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Running": {
+   "cell": 90,
+   "cols": 8,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8
+   ]
+  }
+ },
+ "a_crystaline_knight": {
+  "Attack": {
+   "cell": 90,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Death": {
+   "cell": 90,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Running": {
+   "cell": 90,
+   "cols": 8,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8
+   ]
+  },
+  "Taunt": {
+   "cell": 90,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  }
+ },
+ "a_crystaline_werewol": {
+  "Attack": {
+   "cell": 88,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Death": {
+   "cell": 88,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Running": {
+   "cell": 88,
+   "cols": 8,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8
+   ]
+  }
+ },
+ "a_long_neck_and_cro": {
+  "Attack": {
+   "cell": 88,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Death": {
+   "cell": 88,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Running": {
+   "cell": 88,
+   "cols": 8,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8
+   ]
+  }
+ },
+ "crystal_armor_plates": {
+  "Attack": {
+   "cell": 88,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Death": {
+   "cell": 88,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Running": {
+   "cell": 88,
+   "cols": 8,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8
+   ]
+  }
+ },
+ "golden_light_glowing": {
+  "Death": {
+   "cell": 88,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Healing": {
+   "cell": 88,
+   "cols": 13,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+   ]
+  },
+  "Running": {
+   "cell": 88,
+   "cols": 8,
+   "rows": 8,
+   "dirs": [
+    "east",
+    "north",
+    "north-east",
+    "north-west",
+    "south",
+    "south-east",
+    "south-west",
+    "west"
+   ],
+   "frames": [
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8
+   ]
+  }
+ }
+}
