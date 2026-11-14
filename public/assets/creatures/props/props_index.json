@@ -1,0 +1,442 @@
+{
+ "arc_pylon": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 64,
+  "serves": "turret-sprite Cyborg tesla, Magitech arc-tower, charged-pylon",
+  "tints": [
+   "chrome",
+   "arcane",
+   "violet"
+  ],
+  "w": 32
+ },
+ "archer_blind": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "blind-sprite, Battlefield archers' post",
+  "tints": [],
+  "w": 48
+ },
+ "ballista_small": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "ballista x2 (Arsenal, Battlefield), blowhole deck ballista, hidden-turret, blind ballista",
+  "tints": [
+   "iron",
+   "sea",
+   "moss"
+  ],
+  "w": 48
+ },
+ "belfry_roost": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "belfry-roost-sprite",
+  "tints": [],
+  "w": 32
+ },
+ "blowhole_rock": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "blowhole-turret-sprite",
+  "tints": [],
+  "w": 48
+ },
+ "brazier": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 64,
+  "serves": "brazier x3 (Immortal, Sacrifice, Succubus), brazier-turret Wrath",
+  "tints": [
+   "gold",
+   "crimson",
+   "violet",
+   "white"
+  ],
+  "w": 48
+ },
+ "briar_bush": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 32,
+  "serves": "briar-bush-sprite (+ nettle recolour)",
+  "tints": [],
+  "w": 32
+ },
+ "crystal_pylon": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 64,
+  "serves": "singing-pylon, prism-turret",
+  "tints": [],
+  "w": 32
+ },
+ "disc_mine": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 32,
+  "serves": "mine-sprite",
+  "tints": [],
+  "w": 32
+ },
+ "emplacement": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "emplacement-sprite",
+  "tints": [],
+  "w": 48
+ },
+ "feast_table": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 32,
+  "serves": "feast-table-sprite",
+  "tints": [],
+  "w": 64
+ },
+ "flame_pillar": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 64,
+  "serves": "brazier-turret Wrath pillar",
+  "tints": [],
+  "w": 32
+ },
+ "floating_lens": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 32,
+  "serves": "burning-lens-art, watching-lens-sprite",
+  "tints": [
+   "sun",
+   "gold"
+  ],
+  "w": 32
+ },
+ "gilded_idol": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "idol-sprite",
+  "tints": [],
+  "w": 32
+ },
+ "hanging_prism": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 32,
+  "serves": "chaos-font-sprite spinning prism",
+  "tints": [],
+  "w": 32
+ },
+ "hourglass": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "hourglass-turret-sprite",
+  "tints": [],
+  "w": 32
+ },
+ "iron_lantern": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "lantern-sprite Twilight, lantern-path",
+  "tints": [],
+  "w": 32
+ },
+ "jack_box": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 32,
+  "serves": "jack-box-sprite",
+  "tints": [],
+  "w": 32
+ },
+ "jaw_trap": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 32,
+  "serves": "jaws-sprite, snare-sprite",
+  "tints": [
+   "rust",
+   "iron"
+  ],
+  "w": 48
+ },
+ "loom_frame": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 64,
+  "serves": "loom-turret-sprite",
+  "tints": [],
+  "w": 48
+ },
+ "magic_font": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "chaos-font-sprite, coin-fountain-sprite (coins by tint/particles)",
+  "tints": [
+   "gold"
+  ],
+  "w": 48
+ },
+ "magic_lantern": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "magic-lantern-sprite",
+  "tints": [],
+  "w": 48
+ },
+ "menhir_sigil": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 64,
+  "serves": "menhir-sprite",
+  "tints": [],
+  "w": 32
+ },
+ "mimic_chest": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 32,
+  "serves": "mimic-chest-sprite",
+  "tints": [],
+  "w": 32
+ },
+ "mortar_pit": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "emplacement-sprite mortar",
+  "tints": [],
+  "w": 48
+ },
+ "obelisk": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 64,
+  "serves": "obelisk-art Monolith, obelisk-sprite Immortal",
+  "tints": [
+   "weathered"
+  ],
+  "w": 32
+ },
+ "open_belfry": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "masonry-turret-art belfry",
+  "tints": [],
+  "w": 32
+ },
+ "paper_lantern": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 32,
+  "serves": "lantern-path-art Tranquil",
+  "tints": [],
+  "w": 32
+ },
+ "pillory": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "pillory-sprite",
+  "tints": [],
+  "w": 32
+ },
+ "pincushion": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 32,
+  "serves": "loom-turret-sprite pincushion",
+  "tints": [],
+  "w": 32
+ },
+ "pod_plant": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "seed-pod-turret, seedpod-spitter, seedpod-turret Bounty",
+  "tints": [
+   "lotus",
+   "harvest"
+  ],
+  "w": 48
+ },
+ "practice_dummy": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "practice-dummy-sprite",
+  "tints": [],
+  "w": 32
+ },
+ "prayer_drum": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "prayer-drum-sprite",
+  "tints": [],
+  "w": 32
+ },
+ "roc_nest": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 64,
+  "serves": "nest-sprite",
+  "tints": [],
+  "w": 64
+ },
+ "rose_trellis": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "rose-trellis-sprite",
+  "tints": [],
+  "w": 32
+ },
+ "sarcophagus": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 32,
+  "serves": "sarcophagus-sprite",
+  "tints": [],
+  "w": 48
+ },
+ "sealed_jar": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 32,
+  "serves": "sealed-jar-trap",
+  "tints": [],
+  "w": 32
+ },
+ "sealed_note": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 32,
+  "serves": "note-trap-sprite",
+  "tints": [],
+  "w": 32
+ },
+ "sleet_squall": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "weather-turret-sprite sleet",
+  "tints": [],
+  "w": 32
+ },
+ "storm_spire": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 64,
+  "serves": "storm-spire-sprite (meteor beacon = engine brazier flame on top)",
+  "tints": [],
+  "w": 32
+ },
+ "sundial_shrine": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "shrine-sprite",
+  "tints": [],
+  "w": 32
+ },
+ "tally_post": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "tally-post-sprite",
+  "tints": [],
+  "w": 32
+ },
+ "thunderhead": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 32,
+  "serves": "weather-turret-sprite",
+  "tints": [],
+  "w": 48
+ },
+ "training_post": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "training-post-art",
+  "tints": [],
+  "w": 32
+ },
+ "tripod_sentry": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "sentry-turret x2 (Action, Magitech), turret-sprite Cyborg",
+  "tints": [
+   "arcane",
+   "chrome"
+  ],
+  "w": 48
+ },
+ "war_banner": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 64,
+  "serves": "banner-sprite, warband-banner-sprite",
+  "tints": [
+   "sable",
+   "gold"
+  ],
+  "w": 32
+ },
+ "war_drum": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 32,
+  "serves": "drum-turret-sprite",
+  "tints": [],
+  "w": 32
+ },
+ "warding_post": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "warding-post-sprite",
+  "tints": [],
+  "w": 32
+ },
+ "watch_cairn": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "menhir-sprite watch cairn",
+  "tints": [],
+  "w": 48
+ },
+ "watchtower": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "masonry-turret-art",
+  "tints": [],
+  "w": 32
+ },
+ "zoetrope": {
+  "frameMs": 100,
+  "frames": 8,
+  "h": 48,
+  "serves": "magic-lantern-sprite zoetrope",
+  "tints": [],
+  "w": 48
+ }
+}

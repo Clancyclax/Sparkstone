@@ -1,0 +1,74 @@
+{
+ "belltower": {
+  "file": "belltower.png",
+  "still": "belltower_still.png",
+  "frame_w": 64,
+  "frame_h": 96,
+  "frames": 8,
+  "loop": true
+ },
+ "greatclock": {
+  "file": "greatclock.png",
+  "still": "greatclock_still.png",
+  "frame_w": 64,
+  "frame_h": 96,
+  "frames": 8,
+  "loop": true
+ },
+ "ballistatower": {
+  "file": "ballistatower.png",
+  "still": "ballistatower_still.png",
+  "frame_w": 64,
+  "frame_h": 96,
+  "frames": 8,
+  "loop": true
+ },
+ "barbican": {
+  "file": "barbican.png",
+  "still": "barbican_still.png",
+  "frame_w": 64,
+  "frame_h": 96,
+  "frames": 8,
+  "loop": true
+ },
+ "skullpillar": {
+  "file": "skullpillar.png",
+  "still": "skullpillar_still.png",
+  "frame_w": 48,
+  "frame_h": 80,
+  "frames": 8,
+  "loop": true
+ },
+ "tombstone": {
+  "file": "tombstone.png",
+  "still": "tombstone_still.png",
+  "frame_w": 48,
+  "frame_h": 64,
+  "frames": 8,
+  "loop": true
+ },
+ "tentacle": {
+  "file": "tentacle.png",
+  "still": "tentacle_still.png",
+  "frame_w": 64,
+  "frame_h": 96,
+  "frames": 8,
+  "loop": true
+ },
+ "serpenthead": {
+  "file": "serpenthead.png",
+  "still": "serpenthead_still.png",
+  "frame_w": 96,
+  "frame_h": 64,
+  "frames": 8,
+  "loop": true
+ },
+ "graspinghands": {
+  "file": "graspinghands.png",
+  "still": "graspinghands_still.png",
+  "frame_w": 64,
+  "frame_h": 64,
+  "frames": 8,
+  "loop": true
+ }
+}
